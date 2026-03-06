@@ -229,7 +229,7 @@ try {
 				</p>
 				<!-- Closed label (expired) — hidden by default -->
 				<p id="subcom-closed-text" class="hidden font-mono text-xs text-sudata-grey/30 tracking-wider">
-					Recruitment closed — watch our Insta for the next round
+					Applications are closed — check back for the next round on Instagram
 				</p>
 			</div>
 		</div>
@@ -237,7 +237,15 @@ try {
 </Layout>
 
 <script>
-	// ── Subcom deadline check — hide entire section after 13 Mar 2026 ───────
+	// ── Subcom deadline check ─────────────────────────────────────────────
+	const SUBCOM_CLOSE = new Date('2026-03-06T23:59:00');
+	if (new Date() >= SUBCOM_CLOSE) {
+		document.getElementById('subcom-active')?.classList.add('hidden');
+		document.getElementById('subcom-expired')?.classList.remove('hidden');
+		document.getElementById('subcom-deadline-text')?.classList.add('hidden');
+		document.getElementById('subcom-closed-text')?.classList.remove('hidden');
+	}
+	// Hide entire section two weeks after close
 	if (new Date() >= new Date('2026-03-14T00:00:00')) {
 		document.getElementById('subcom-section')?.classList.add('hidden');
 	}
