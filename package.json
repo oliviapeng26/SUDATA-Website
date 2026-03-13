@@ -16,6 +16,7 @@
     "@types/three": "^0.182.0",
     "astro": "^5.17.1",
     "d3": "^7.9.0",
+    "marked": "^17.0.4",
     "pdfjs-dist": "^5.4.624",
     "pixelarticons": "^1.8.1",
     "react": "^19.2.3",

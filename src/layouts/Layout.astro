@@ -65,6 +65,9 @@ const isHomePage = Astro.url.pathname === '/';
 							<a href="/photos" class="text-white/80 hover:text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] whitespace-nowrap">
 								Photos
 							</a>
+							<a href="/docs" class="text-white/80 hover:text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] whitespace-nowrap">
+								Docs
+							</a>
 							<a href="https://usu.edu.au/clubs/sydney-uni-data-society/" target="_blank" rel="noopener noreferrer" class="text-sudata-cyan bg-sudata-cyan/10 border border-sudata-cyan/40 hover:bg-sudata-cyan/25 hover:border-sudata-cyan/70 hover:text-white hover:shadow-[0_0_20px_rgba(0,255,255,0.35)] hover:-translate-y-px px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 whitespace-nowrap">
 								Membership
 							</a>
@@ -108,15 +111,15 @@ const isHomePage = Astro.url.pathname === '/';
 		</style>
 		<script>
 			(function() {
-				const toggle = document.getElementById('nav-toggle');
-				const navLinks = document.getElementById('nav-links');
-				const navInner = document.getElementById('nav-inner');
-				const sudinoIcon = document.getElementById('sudino-icon');
-				const mainNav = document.getElementById('main-nav');
-				// Check if mobile view
+				const toggle = document.getElementById('nav-toggle') as HTMLElement | null;
+				const navLinks = document.getElementById('nav-links') as HTMLElement | null;
+				const navInner = document.getElementById('nav-inner') as HTMLElement | null;
+				const sudinoIcon = document.getElementById('sudino-icon') as HTMLElement | null;
+				const mainNav = document.getElementById('main-nav') as HTMLElement | null;
+				if (!toggle || !navLinks || !navInner || !sudinoIcon || !mainNav) return;
+
 				const isMobile = () => window.innerWidth < 640;
 
-				// Initialise collapsed state immediately to prevent FOUC on mobile
 				let collapsed = isMobile();
 				if (collapsed) {
 					navLinks.style.opacity = '0';
@@ -129,7 +132,6 @@ const isHomePage = Astro.url.pathname === '/';
 					mainNav.classList.remove('nav-mobile-expanded');
 				}
 
-				// Handle toggle click
 				toggle.addEventListener('click', () => {
 					collapsed = !collapsed;
 					if (collapsed) {
@@ -153,7 +155,6 @@ const isHomePage = Astro.url.pathname === '/';
 					}
 				});
 
-				// Handle window resize
 				window.addEventListener('resize', () => {
 					if (!isMobile()) {
 						navLinks.style.opacity = '1';

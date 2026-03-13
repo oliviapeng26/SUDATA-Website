@@ -1,17 +1,17 @@
-# 📅 Calendar Configuration Guide
+# Calendar Configuration Guide
 
 ## Overview
 
 Your events calendar now has a **comprehensive config system** that makes it easy to:
-- ✅ Switch between years (2024, 2025, 2026, etc.)
-- ✅ Show semester weeks automatically (S1W1, S1W2, etc.)
-- ✅ Display special periods (STUVAC, Exams, Mid-Sem)
-- ✅ Show public holidays
-- ✅ Update once per year from USyd PDF
+- Switch between years (2024, 2025, 2026, etc.)
+- Show semester weeks automatically (S1W1, S1W2, etc.)
+- Display special periods (STUVAC, Exams, Mid-Sem)
+- Show public holidays
+- Update once per year from USyd PDF
 
 ---
 
-## 📁 File Structure
+## File Structure
 
 ```
 src/
@@ -20,15 +20,15 @@ src/
 │   └── EventModal.jsx           # Event popup
 ├── data/
 │   ├── events.json              # Your SUDATA events
-│   ├── semesterDates.js         # 🔧 UPDATE THIS YEARLY
-│   └── publicHolidays.js        # 🔧 UPDATE THIS YEARLY (optional)
+│   ├── semesterDates.js         # UPDATE THIS YEARLY
+│   └── publicHolidays.js        # UPDATE THIS YEARLY (optional)
 └── pages/
     └── events.astro             # Events page
 ```
 
 ---
 
-## 🔄 Annual Update Process
+## Annual Update Process
 
 ### **When USyd releases new calendar (usually November):**
 
@@ -40,7 +40,7 @@ src/
 
 ---
 
-## 📝 Updating Semester Dates
+## Updating Semester Dates
 
 ### **Step 1: Open USyd Calendar PDF**
 
@@ -60,7 +60,7 @@ Add a new year block:
 export const SEMESTER_DATES = {
   // ... existing years ...
   
-  2027: {  // 👈 New year
+  2027: {  // New year
     semester1: {
       welcomeProgram: { start: '2027-02-XX', end: '2027-02-XX' },
       teaching: { start: '2027-02-XX', end: '2027-05-XX' },
@@ -86,7 +86,7 @@ export const SEMESTER_DATES = {
 In `src/components/EventCalendar.jsx`, find:
 
 ```javascript
-const availableYears = [2024, 2025, 2026]; // 👈 Add new year here
+const availableYears = [2024, 2025, 2026]; // Add new year here
 ```
 
 Change to:
@@ -96,14 +96,14 @@ const availableYears = [2024, 2025, 2026, 2027]; // Added 2027
 ```
 
 **That's it!** The calendar will automatically:
-- ✅ Calculate week numbers (S1W1-13, S2W1-13)
-- ✅ Show STUVAC and Exam periods
-- ✅ Display Mid-Semester breaks
-- ✅ Handle year switching
+- Calculate week numbers (S1W1-13, S2W1-13)
+- Show STUVAC and Exam periods
+- Display Mid-Semester breaks
+- Handle year switching
 
 ---
 
-## 🎉 Updating Public Holidays
+## Updating Public Holidays
 
 ### **Option 1: Automatic (Recommended)**
 
@@ -139,7 +139,7 @@ export const PUBLIC_HOLIDAYS = {
 
 ---
 
-## 📊 What Users See
+## What Users See
 
 ### **Calendar Features:**
 
@@ -163,19 +163,19 @@ export const PUBLIC_HOLIDAYS = {
 ### **Example Calendar Day:**
 
 ```
-┌──────────────┐
-│ 15     S1W3  │ ← Day 15, Semester 1 Week 3
-│              │
-│ Workshop     │ ← SUDATA event
-│ ANZAC Day    │ ← Public holiday
-└──────────────┘
++----------------+
+| 15     S1W3    | <- Day 15, Semester 1 Week 3
+|                |
+| Workshop       | <- SUDATA event
+| ANZAC Day      | <- Public holiday
++----------------+
 ```
 
 ---
 
-## 🔍 Quick Reference
+## Quick Reference
 
-### **USyd PDF → Config Mapping**
+### **USyd PDF to Config Mapping**
 
 | PDF Says | Config Field |
 |----------|--------------|
@@ -191,14 +191,14 @@ export const PUBLIC_HOLIDAYS = {
 Always use: `YYYY-MM-DD`
 
 Examples:
-- ✅ `'2027-02-15'` (February 15, 2027)
-- ✅ `'2027-11-03'` (November 3, 2027)
-- ❌ `'15/02/2027'` (Wrong format!)
-- ❌ `'2027-2-15'` (Missing zero padding!)
+- Correct: `'2027-02-15'` (February 15, 2027)
+- Correct: `'2027-11-03'` (November 3, 2027)
+- Wrong: `'15/02/2027'` (Wrong format!)
+- Wrong: `'2027-2-15'` (Missing zero padding!)
 
 ---
 
-## 🚨 Common Issues
+## Common Issues
 
 ### **Issue: Weeks not showing**
 **Solution:** Check that semester teaching dates are correct in `semesterDates.js`
@@ -216,7 +216,7 @@ Examples:
 
 ---
 
-## 🎯 Testing Your Changes
+## Testing Your Changes
 
 After updating configs:
 
@@ -233,7 +233,7 @@ After updating configs:
 
 ---
 
-## 💡 Pro Tips
+## Pro Tips
 
 1. **Do it once per year** (November when USyd releases calendar)
 2. **Keep old years** - users can browse history
@@ -243,7 +243,7 @@ After updating configs:
 
 ---
 
-## 📞 Need Help?
+## Need Help?
 
 If weeks aren't calculating correctly:
 1. Double-check `teaching.start` date
@@ -252,10 +252,10 @@ If weeks aren't calculating correctly:
 4. Check browser console for errors
 
 The system automatically handles:
-- ✅ Week number calculation
-- ✅ Mid-semester break gaps
-- ✅ STUVAC and exam periods
-- ✅ Leap years
-- ✅ Month transitions
+- Week number calculation
+- Mid-semester break gaps
+- STUVAC and exam periods
+- Leap years
+- Month transitions
 
-Just provide the dates - it does the rest! 🚀
+Just provide the dates and it does the rest!

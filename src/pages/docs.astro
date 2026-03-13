@@ -1,0 +1,135 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { marked } from 'marked';
+
+const root = process.cwd();
+
+const docs = [
+	{
+		id: 'overview',
+		title: 'Project Overview',
+		file: join(root, 'README.md'),
+	},
+	{
+		id: 'calendar',
+		title: 'Events Calendar',
+		file: join(root, 'readmes', 'README_CALENDAR.md'),
+	},
+	{
+		id: 'yearly-updates',
+		title: 'Yearly Calendar Updates',
+		file: join(root, 'readmes', 'YEARLY_CALENDAR_UPDATES.md'),
+	},
+	{
+		id: 'photos',
+		title: 'Photo Albums',
+		file: join(root, 'readmes', 'README_PHOTOS.md'),
+	},
+	{
+		id: 'piechart',
+		title: 'Pie Chart Data',
+		file: join(root, 'readmes', 'README_PIECHART.md'),
+	},
+];
+
+marked.setOptions({ gfm: true, breaks: false });
+
+const renderedDocs = docs.map((doc) => ({
+	...doc,
+	html: marked.parse(readFileSync(doc.file, 'utf-8')),
+}));
+---
+
+<Layout title="Documentation | SUDATA">
+	<div class="flex flex-col w-full max-w-6xl mx-auto pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20 md:pb-24 px-4">
+		<header class="reveal-on-scroll text-center space-y-2 sm:space-y-4 mb-10 sm:mb-14">
+			<h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-sudata-neon tracking-wider sm:tracking-widest neon-text-shadow font-mono-tech">
+				Documentation
+			</h1>
+			<p class="text-sudata-grey font-mono-tech text-base sm:text-lg tracking-wide">
+				[ Internal Wiki &amp; Contributor Guides ]
+			</p>
+		</header>
+
+		<div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
+			<!-- Sidebar TOC -->
+			<nav id="docs-sidebar" class="lg:sticky lg:top-28 lg:self-start lg:w-64 flex-shrink-0">
+				<div class="terminal-block p-4 sm:p-5">
+					<div class="relative z-10">
+						<div class="font-mono-tech text-sudata-neon/80 text-xs tracking-[0.2em] mb-4 flex items-center gap-2">
+							<span class="animate-flicker">&gt;_</span>
+							<span>TABLE_OF_CONTENTS</span>
+						</div>
+						<ul class="space-y-1">
+							{renderedDocs.map((doc, i) => (
+								<li>
+									<a
+										href={`#${doc.id}`}
+										class="docs-toc-link group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-mono-tech text-sudata-grey/80 hover:text-sudata-neon hover:bg-sudata-neon/5 transition-all duration-300"
+										data-section={doc.id}
+									>
+										<span class="text-sudata-neon/50 group-hover:text-sudata-neon text-xs tabular-nums transition-colors">{String(i + 1).padStart(2, '0')}</span>
+										<span class="truncate">{doc.title}</span>
+									</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				</div>
+			</nav>
+
+			<!-- Main content -->
+			<div class="flex-1 min-w-0 space-y-10 sm:space-y-14">
+				{renderedDocs.map((doc, i) => (
+					<section id={doc.id} class="scroll-mt-28">
+						<div class="terminal-block p-6 sm:p-8 md:p-10">
+							<div class="relative z-10">
+								<div class="font-mono-tech text-sudata-neon/80 text-xs sm:text-sm tracking-[0.2em] mb-6 flex items-center gap-2">
+									<span class="animate-flicker">&gt;_</span>
+									<span class="whitespace-nowrap">[DOC: {String(i + 1).padStart(2, '0')}]</span>
+								</div>
+								<div class="docs-prose" set:html={doc.html} />
+							</div>
+						</div>
+					</section>
+				))}
+			</div>
+		</div>
+	</div>
+</Layout>
+
+<style>
+	.docs-toc-link.active {
+		color: #00F0FF;
+		background: rgba(0, 240, 255, 0.08);
+	}
+	.docs-toc-link.active span:first-child {
+		color: #00F0FF;
+	}
+</style>
+
+<script>
+	const sections = document.querySelectorAll('section[id]');
+	const tocLinks = document.querySelectorAll('.docs-toc-link');
+
+	function updateActive() {
+		let currentId = '';
+		const offset = 140;
+
+		sections.forEach((section) => {
+			const rect = section.getBoundingClientRect();
+			if (rect.top <= offset) {
+				currentId = section.id;
+			}
+		});
+
+		tocLinks.forEach((link) => {
+			link.classList.toggle('active', link.getAttribute('data-section') === currentId);
+		});
+	}
+
+	window.addEventListener('scroll', updateActive, { passive: true });
+	updateActive();
+</script>
