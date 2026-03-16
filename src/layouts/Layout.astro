@@ -98,42 +98,35 @@ const isHomePage = Astro.url.pathname === '/';
 				#main-nav.nav-mobile-expanded #nav-pill-inner {
 					padding: 0.6rem 1rem;
 				}
-				/* Override Tailwind gap-12 that kicks in when JS clears inline gap */
+				/* Stack SUDATA above the link grid so the grid gets full pill width */
 				#main-nav.nav-mobile-expanded #nav-inner {
-					gap: 0.6rem;
+					flex-direction: column;
+					align-items: flex-start;
+					gap: 0.3rem;
 					width: 100%;
-					align-items: center;
 				}
-				/* Keep SUDATA from shrinking */
-				#main-nav.nav-mobile-expanded #nav-toggle {
-					flex-shrink: 0;
-				}
-				/* 4-column grid — no overflow:hidden so Membership border isn't clipped */
+				/* 4-column grid at full width — each cell is ~¼ of the pill */
 				#main-nav.nav-mobile-expanded #nav-links {
 					display: grid;
 					grid-template-columns: repeat(4, 1fr);
 					gap: 0.25rem;
-					flex: 1;
-					min-width: 0;
+					width: 100%;
 				}
 				#main-nav.nav-mobile-expanded #nav-links a {
-					padding: 0.3rem 0.15rem;
-					font-size: 0.6rem;
+					padding: 0.3rem 0.2rem;
+					font-size: 0.65rem;
 					line-height: 1.2;
 					text-align: center;
-					/* flex (not inline-flex) so each link fills its grid cell fully */
 					display: flex;
 					align-items: center;
 					justify-content: center;
 					white-space: normal;
 				}
-				/* Membership: flat rounded rectangle that fills its grid cell */
+				/* Membership: flat rounded rectangle with horizontal breathing room */
 				#main-nav.nav-mobile-expanded #nav-links a:last-child {
 					border-radius: 0.3rem;
-					padding: 0.15rem 0.4rem;
+					padding: 0.2rem 0.35rem;
 					white-space: nowrap;
-					font-size: 0.58rem;
-					overflow: hidden;
 				}
 			}
 		</style>
