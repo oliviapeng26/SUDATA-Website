@@ -1,5 +1,6 @@
 ---
 import SpeedInsights from "@vercel/speed-insights/astro";
+import Analytics from '@vercel/analytics/astro'
 
 import '../styles/global.css';
 import SubcomRecruitment from '../components/SubcomRecruitment.jsx';
@@ -23,6 +24,8 @@ const isHomePage = Astro.url.pathname === '/';
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=VT323&display=swap" rel="stylesheet">
 		<title>{title}</title>
+
+		<Analytics />
 	</head>
 	<body class="min-h-screen flex flex-col bg-sudata-navy relative overflow-x-hidden selection:bg-sudata-cyan selection:text-sudata-navy">
 		<!-- Retro Scanline Overlay -->
