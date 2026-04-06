@@ -1,6 +1,22 @@
 {
   "events": [
     {
+      "title": "Data-Hack",
+      "date": "18/04/2026 to 20/04/2026",
+      "time": "9am on 18th to 5pm on 20th",
+      "venue": "PNR Lecture Theatre",
+      "type": "academic",
+      "description": "Multi-day datathon competition. Solve real-world data problems and win prizes!",
+      "collaborators": [
+        "SUDATA",
+        "COMM-STEM"
+      ],
+      "catering": "Lunch and Snacks",
+      "signupLink": "https://events.humanitix.com/sudata-x-comms-stem-hackathon-2026",
+      "attendees": 0,
+      "id": "event_001"
+    },
+    {
       "title": "TESTING",
       "date": "2025-02-20",
       "time": "16:00",
@@ -13,7 +29,7 @@
       "catering": "None",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_001"
+      "id": "event_002"
     },
     {
       "title": "Introduction to R Workshop",
@@ -28,7 +44,7 @@
       "catering": "TBA",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_002"
+      "id": "event_003"
     },
     {
       "title": "Welcome Drinks/Pub Crawl",
@@ -43,7 +59,7 @@
       "catering": "Drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_003"
+      "id": "event_004"
     },
     {
       "title": "Jane Street Talk",
@@ -60,7 +76,7 @@
       "catering": "TBA",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_004"
+      "id": "event_005"
     },
     {
       "title": "Introduction to Data Science/Career Panel",
@@ -75,7 +91,7 @@
       "catering": "TBA",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_005"
+      "id": "event_006"
     },
     {
       "title": "Coffee Catchup with CBA",
@@ -91,7 +107,7 @@
       "catering": "Coffee and snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_006"
+      "id": "event_007"
     },
     {
       "title": "Craftsoc Collaboration",
@@ -107,7 +123,7 @@
       "catering": "Drinks and snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_007"
+      "id": "event_008"
     },
     {
       "title": "SUDATA Camp",
@@ -122,7 +138,7 @@
       "catering": "All meals provided",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_008"
+      "id": "event_009"
     },
     {
       "title": "Quantium Office Event",
@@ -138,7 +154,7 @@
       "catering": "Morning tea",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_009"
+      "id": "event_010"
     },
     {
       "title": "Mahjong Night with Mahjong Soc",
@@ -154,7 +170,7 @@
       "catering": "Snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_010"
+      "id": "event_011"
     },
     {
       "title": "AI Workshop with Rhombus AI",
@@ -170,7 +186,7 @@
       "catering": "Pizza and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_011"
+      "id": "event_012"
     },
     {
       "title": "Coffee Catchup with BISA",
@@ -186,7 +202,7 @@
       "catering": "Coffee",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_012"
+      "id": "event_013"
     },
     {
       "title": "Coffee Catchup with 180DC",
@@ -202,7 +218,7 @@
       "catering": "Coffee",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_013"
+      "id": "event_014"
     },
     {
       "title": "AmplifyMe Finance Accelerator",
@@ -218,7 +234,7 @@
       "catering": "TBA",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_014"
+      "id": "event_015"
     },
     {
       "title": "Internal Event",
@@ -233,7 +249,7 @@
       "catering": "TBA",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_015"
+      "id": "event_016"
     },
     {
       "title": "Academic Workshop",
@@ -248,7 +264,7 @@
       "catering": "Pizza",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_016"
+      "id": "event_017"
     },
     {
       "title": "SMS x SUDATA Pub Crawl",
@@ -264,7 +280,7 @@
       "catering": "Drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_017"
+      "id": "event_018"
     },
     {
       "title": "Industry Networking Night",
@@ -279,7 +295,7 @@
       "catering": "Canapés and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_018"
+      "id": "event_019"
     },
     {
       "title": "Trivia Night",
@@ -294,7 +310,7 @@
       "catering": "Pizza and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_019"
+      "id": "event_020"
     },
     {
       "title": "DATA1002 Revision Session",
@@ -309,7 +325,7 @@
       "catering": "Snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_020"
+      "id": "event_021"
     },
     {
       "title": "Cruise",
@@ -326,7 +342,7 @@
       "catering": "Included",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_021"
+      "id": "event_022"
     },
     {
       "title": "Westpac Coffee Chat",
@@ -342,7 +358,7 @@
       "catering": "Coffee and snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_022"
+      "id": "event_023"
     },
     {
       "title": "Pub Crawl",
@@ -357,7 +373,7 @@
       "catering": "Drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_023"
+      "id": "event_024"
     },
     {
       "title": "Quantium Poker Night",
@@ -373,7 +389,7 @@
       "catering": "Snacks and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_024"
+      "id": "event_025"
     },
     {
       "title": "Introduction to Data Science",
@@ -388,7 +404,7 @@
       "catering": "Pizza",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_025"
+      "id": "event_026"
     },
     {
       "title": "Speed Friending",
@@ -403,7 +419,7 @@
       "catering": "Snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_026"
+      "id": "event_027"
     },
     {
       "title": "CBA In-Office Networking Event",
@@ -419,7 +435,7 @@
       "catering": "Refreshments",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_027"
+      "id": "event_028"
     },
     {
       "title": "Movie Night with Wasabi",
@@ -435,7 +451,7 @@
       "catering": "Popcorn and snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_028"
+      "id": "event_029"
     },
     {
       "title": "Coffee Catchup with Microsoft/Meta",
@@ -452,7 +468,7 @@
       "catering": "Coffee",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_029"
+      "id": "event_030"
     },
     {
       "title": "Mentoring Program Orientation",
@@ -467,7 +483,7 @@
       "catering": "Light refreshments",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_030"
+      "id": "event_031"
     },
     {
       "title": "Machine Learning Workshop",
@@ -482,7 +498,7 @@
       "catering": "Pizza and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_031"
+      "id": "event_032"
     },
     {
       "title": "Social Sports Event",
@@ -497,7 +513,7 @@
       "catering": "Snacks and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_032"
+      "id": "event_033"
     },
     {
       "title": "Coffee Catchup with SUBAA",
@@ -513,7 +529,7 @@
       "catering": "Coffee",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_033"
+      "id": "event_034"
     },
     {
       "title": "Startup Panel Night",
@@ -528,7 +544,7 @@
       "catering": "Light refreshments",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_034"
+      "id": "event_035"
     },
     {
       "title": "Intern Panel",
@@ -543,7 +559,7 @@
       "catering": "Snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_035"
+      "id": "event_036"
     },
     {
       "title": "Ultimate Frisbee",
@@ -558,7 +574,7 @@
       "catering": "None",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_036"
+      "id": "event_037"
     },
     {
       "title": "USYD Datathon",
@@ -578,7 +594,7 @@
       "catering": "Meals provided",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_037"
+      "id": "event_038"
     },
     {
       "title": "BBQ Picnic",
@@ -594,7 +610,7 @@
       "catering": "BBQ",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_038"
+      "id": "event_039"
     },
     {
       "title": "DATA1002 Study Session",
@@ -609,7 +625,7 @@
       "catering": "Snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_039"
+      "id": "event_040"
     },
     {
       "title": "Mahjong Society Collaboration",
@@ -625,7 +641,7 @@
       "catering": "Snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_040"
+      "id": "event_041"
     },
     {
       "title": "Trivia with EconSoc",
@@ -641,7 +657,7 @@
       "catering": "Pizza and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
-      "id": "event_041"
+      "id": "event_042"
     },
     {
       "title": "SUDATA Ball",
@@ -658,7 +674,7 @@
       "catering": "Three-course dinner",
       "signupLink": "https://events.humanitix.com/mathsoc-x-sums-x-sudata-presents-among-the-stars-annual-ball",
       "attendees": 0,
-      "id": "event_042"
+      "id": "event_043"
     },
     {
       "title": "Annual General Meeting",
@@ -673,7 +689,7 @@
       "catering": "None",
       "signupLink": "https://link.sudata.org/agm2025nominations",
       "attendees": 0,
-      "id": "event_043"
+      "id": "event_044"
     },
     {
       "title": "Mentoring Program Presentation Night",
@@ -689,7 +705,7 @@
       "catering": "Light refreshments",
       "signupLink": "https://forms.gle/Qv22MTefFCbkDoif7",
       "attendees": 0,
-      "id": "event_044"
+      "id": "event_045"
     },
     {
       "title": "Coffee Catchup with Notion",
@@ -705,7 +721,7 @@
       "catering": "Coffee",
       "signupLink": "https://campusleaders.notion.site/28bd5368c6db80cd8383f4b8ae1cf880",
       "attendees": 0,
-      "id": "event_045"
+      "id": "event_046"
     },
     {
       "title": "Halloween Pub Crawl",
@@ -721,7 +737,7 @@
       "catering": "Drinks",
       "signupLink": "https://events.humanitix.com/usyd-sudata-x-uts-techsoc-halloween-pub-crawl",
       "attendees": 0,
-      "id": "event_046"
+      "id": "event_047"
     },
     {
       "title": "DATA1002/2002 Revision Session",
@@ -736,7 +752,7 @@
       "catering": "Lunch and Snacks",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLSdOQ6QU7fPNe9oa4mItcof9UH8VsgHTjxPJp3uWLmr9d9mv5w/viewform",
       "attendees": 0,
-      "id": "event_047"
+      "id": "event_048"
     },
     {
       "title": "SUDATA Speed Friending",
@@ -751,7 +767,7 @@
       "catering": "Snacks and drinks",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLSeduhevat2fDYJJUjY6mECZbH3QXoC_0hNrDCHVqyYdwnAiqg/viewform?usp=dialog",
       "attendees": 0,
-      "id": "event_048"
+      "id": "event_049"
     },
     {
       "title": "SUDATA x SUBAA Welcome Drinks",
@@ -767,7 +783,7 @@
       "catering": "One free Drink provided",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLScKZVKDVWMbtH2mYJpaJJOdHb3vRpJby2CYVKwQ4UcD3wUGBg/viewform",
       "attendees": 0,
-      "id": "event_049"
+      "id": "event_050"
     },
     {
       "title": "Poker Workshop",
@@ -784,7 +800,7 @@
       "catering": "TBA",
       "signupLink": "https://forms.gle/PMUkorsxWhRaeZdq7",
       "attendees": 0,
-      "id": "event_050"
+      "id": "event_051"
     },
     {
       "title": "SUDATA x CommSTEM Coffee Chat",
@@ -800,7 +816,7 @@
       "catering": "Coffee availble for purchase on a society tab",
       "signupLink": "TBA",
       "attendees": 0,
-      "id": "event_051"
+      "id": "event_052"
     },
     {
       "title": "Introduction to R Workshop",
@@ -815,7 +831,7 @@
       "catering": "Snacks",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLScgW3fZhxdtB65OgVPNcWrCGxCODn6fjWnh4lLI3cafpXfg_A/viewform",
       "attendees": 0,
-      "id": "event_052"
+      "id": "event_053"
     },
     {
       "title": "Dinner with Jane Street",
@@ -831,7 +847,7 @@
       "catering": "Dinner",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLSf46ZiUBv2E_YBmU0tA3ywnUhGT7KrWh1ifW98jJ2F-iPxs4g/viewform",
       "attendees": 0,
-      "id": "event_053"
+      "id": "event_054"
     },
     {
       "title": "Jane Street Tech Talk",
@@ -847,7 +863,7 @@
       "catering": "TBA",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLSe0fgyAoK7WviXjjQG5-B0WpO6OdeasQA5FbJU1cbfgnZAceQ/viewform",
       "attendees": 0,
-      "id": "event_054"
+      "id": "event_055"
     },
     {
       "title": "SUDATA x SUMS x Econsoc Trivia & Pub Crawl",
@@ -864,7 +880,7 @@
       "catering": "Food provided at the Trivia",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLScqpPcQ59sVttaKaBFjwePnOLHKFWUo0syGt0UPCwH8KmnG5A/viewform?usp=dialog",
       "attendees": 0,
-      "id": "event_055"
+      "id": "event_056"
     },
     {
       "title": "Meet The Startups",
@@ -882,7 +898,7 @@
       "catering": "TBA",
       "signupLink": "https://events.humanitix.com/meet-the-startups-susmi-x-sudata-x-sul-x-medscisoc",
       "attendees": 0,
-      "id": "event_056"
+      "id": "event_057"
     },
     {
       "title": "Total Drama Island 2026 Camp",
@@ -900,24 +916,23 @@
       "catering": "Meals provided",
       "signupLink": "https://events.humanitix.com/sudata-x-sums-x-biosoc-x-bisa-camp-2026?fbclid=IwY2xjawQPexdleHRuA2FlbQIxMQBzcnRjBmFwcF9pZAEwAAEeKIdw7O0NIVHgrUBA4rsJpch8avlWCWYw99hV2MRQQhl3VFoFGBe3HjmW1bk_aem_4Qh6p4uxUHZAc60DdXkfHg",
       "attendees": 0,
-      "id": "event_057"
+      "id": "event_058"
     },
     {
-      "title": "Datathon",
-      "date": "2026-03-30",
-      "time": "TBA",
-      "venue": "TBA",
+      "title": "Data-Hack",
+      "date": "2026-04-18",
+      "time": "10:AM",
+      "venue": "TBD",
       "type": "academic",
-      "description": "Multi-day datathon competition. Solve real-world data problems and win prizes!",
+      "description": "Form a team to tackle real-world datasets to build innovative solutions to complex business problems. Extract insights, develop models, and get the opportunity to pitch your ideas in front of industry & faculty judges.",
       "collaborators": [
         "SUDATA",
-        "COMM-STEM",
-        "SYNCS"
+        "Comm-STEM"
       ],
-      "catering": "Lunch and Snacks",
-      "signupLink": "TBA",
+      "catering": "Food provided throughout event",
+      "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLSc0PpmEPPKaErDartdzL0OhFWrcmmq79hsq49oZ7CR2hDUi9A/viewform?fbclid=PAVERFWAQ9to9leHRuA2FlbQIxMABzcnRjBmFwcF9pZA8xMjQwMjQ1NzQyODc0MTQAAadqwtgGT7mqVE0qgxyPpec07vi01Z8i_ckhJkuwZor_kkiucx7tcICnCg-DEA_aem_-v1T0RahWKiznkVs0U-yVA&pli=1",
       "attendees": 0,
-      "id": "event_058"
+      "id": "event_059"
     },
     {
       "title": "Amstelveen Consulting Workshop",
@@ -933,7 +948,7 @@
       "catering": "TBA",
       "signupLink": "TBA",
       "attendees": 0,
-      "id": "event_059"
+      "id": "event_060"
     },
     {
       "title": "Data Science Careers Panel",
@@ -949,7 +964,7 @@
       "catering": "TBA",
       "signupLink": "TBA",
       "attendees": 0,
-      "id": "event_060"
+      "id": "event_061"
     },
     {
       "title": "Industry Networking Night",
@@ -964,7 +979,7 @@
       "catering": "Canapés and drinks",
       "signupLink": "TBA",
       "attendees": 0,
-      "id": "event_061"
+      "id": "event_062"
     },
     {
       "title": "DATA1001/2001 Revision Session",
@@ -979,7 +994,7 @@
       "catering": "Lunch and Snacks",
       "signupLink": "TBA",
       "attendees": 0,
-      "id": "event_062"
+      "id": "event_063"
     }
   ]
 }
