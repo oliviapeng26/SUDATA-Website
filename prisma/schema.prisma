@@ -25,5 +25,32 @@ model Post {
   content   String?
   published Boolean @default(false) 
   authorId  Int
-  author    User    @relation(fields: [authorId], references: [id]) 
-} 
+  author    User    @relation(fields: [authorId], references: [id])
+}
+
+model LinkClick {
+  id        Int      @id @default(autoincrement())
+  label     String
+  url       String?
+  page      String
+  referrer  String?
+  sessionId String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([label])
+  @@index([page])
+  @@index([createdAt])
+}
+
+model PageView {
+  id        Int      @id @default(autoincrement())
+  page      String
+  referrer  String?
+  sessionId String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([page])
+  @@index([createdAt])
+}
