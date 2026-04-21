@@ -315,6 +315,7 @@ const EventModal = ({ event, onClose }) => {
             href={event.signupLink}
             target="_blank"
             rel="noopener noreferrer"
+            data-track={`event-signup:${(event.title || 'unknown').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
             className="flex-1 px-4 sm:px-6 py-3 sm:py-4 rounded-lg text-[#020617] font-bold text-center text-sm sm:text-base
                      hover:scale-105 active:scale-95 transition-all duration-300 touch-manipulation"
             style={{ 

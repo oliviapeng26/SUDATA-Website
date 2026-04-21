@@ -364,7 +364,7 @@ const isHomePage = Astro.url.pathname === '/';
 					var label = el.getAttribute('data-track');
 					var url = el.getAttribute('href') || null;
 					send({ type: 'click', label: label, url: url });
-				});
+				}, true);
 			})();
 		</script>
 		<SpeedInsights />

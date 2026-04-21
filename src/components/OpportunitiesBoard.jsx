@@ -78,6 +78,7 @@ function OpportunityCard({ opp }) {
           href={opp.applicationLink}
           target="_blank"
           rel="noopener noreferrer"
+          data-track={`sponsor-opp:${opp.sponsor.toLowerCase().replace(/\s+/g, '-')}:${opp.id}`}
           className="relative z-10 inline-flex items-center gap-2 px-5 py-2 bg-sudata-neon text-black font-mono-tech font-bold text-xs tracking-wider hover:bg-sudata-neon/90 transition-all duration-300 self-start"
         >
           APPLY NOW

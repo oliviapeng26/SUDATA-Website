@@ -370,6 +370,7 @@ const EventCalendar = ({ events }) => {
                                 <button
                                   key={event.id}
                                   onClick={() => setSelectedEvent(event)}
+                                  data-track={`event-detail:${(event.title || 'unknown').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
                                   className={`w-full text-left px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold line-clamp-3 transition-colors touch-manipulation`}
                                   style={{
                                     backgroundColor: eventConfig.color,

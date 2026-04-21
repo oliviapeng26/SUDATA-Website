@@ -15,7 +15,7 @@ const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 const prevSince = new Date(since.getTime() - days * 24 * 60 * 60 * 1000);
 
 const [
-  clicksByLabel, pageviews, recentClicks,
+  clicksByLabel, pageviews,
   totalClicks, totalPageviews,
   prevTotalClicks, prevTotalPageviews,
 ] = await Promise.all([
@@ -30,12 +30,6 @@ const [
     where: { createdAt: { gte: since } },
     _count: { id: true },
     orderBy: { _count: { id: 'desc' } },
-  }),
-  prisma.linkClick.findMany({
-    where: { createdAt: { gte: since } },
-    orderBy: { createdAt: 'desc' },
-    take: 25,
-    select: { id: true, label: true, page: true, createdAt: true },
   }),
   prisma.linkClick.count({ where: { createdAt: { gte: since } } }),
   prisma.pageView.count({ where: { createdAt: { gte: since } } }),
@@ -58,6 +52,17 @@ const [uniqueClickSessions, uniqueViewSessions, prevUniqueViewSessions] = await 
   }),
 ]);
 
+// Daily page views for chart
+const dailyViewsRaw = await prisma.$queryRaw<Array<{ day: string; count: number }>>`
+  SELECT
+    TO_CHAR(DATE_TRUNC('day', "createdAt" AT TIME ZONE 'Australia/Sydney'), 'DD Mon') AS day,
+    COUNT(*)::int AS count
+  FROM "PageView"
+  WHERE "createdAt" >= ${since}
+  GROUP BY DATE_TRUNC('day', "createdAt" AT TIME ZONE 'Australia/Sydney')
+  ORDER BY DATE_TRUNC('day', "createdAt" AT TIME ZONE 'Australia/Sydney') ASC
+`;
+
 const uniqueVisitors = new Set([
   ...uniqueViewSessions.map(r => r.sessionId),
   ...uniqueClickSessions.map(r => r.sessionId),
@@ -65,7 +70,6 @@ const uniqueVisitors = new Set([
 
 const prevUniqueVisitors = new Set(prevUniqueViewSessions.map(r => r.sessionId)).size;
 
-// % change vs previous period — null if no previous data
 function trend(current: number, previous: number): string | null {
   if (previous === 0) return null;
   const pct = Math.round(((current - previous) / previous) * 100);
@@ -75,19 +79,18 @@ function trendDir(current: number, previous: number): 'up' | 'down' | 'flat' {
   if (previous === 0 || current === previous) return 'flat';
   return current > previous ? 'up' : 'down';
 }
-
 function slugToTitle(slug: string) {
   return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 const CATEGORIES = [
-  { prefix: 'sponsor-page:', name: 'Sponsor Page',        color: '#0891b2', desc: 'A visitor clicked through to a sponsor\'s website from the Sponsors page.' },
-  { prefix: 'sponsor-opp:',  name: 'Sponsor Opportunity', color: '#059669', desc: 'A visitor clicked on a career opportunity or internship posted by a sponsor on the Careers page.' },
-  { prefix: 'event-detail:', name: 'Event Detail',        color: '#2563eb', desc: 'A visitor opened an event card in the calendar to read its full details.' },
-  { prefix: 'event-signup:', name: 'Event Signup',        color: '#7c3aed', desc: 'A visitor clicked the registration or signup link for a specific event.' },
-  { prefix: 'download:',     name: 'Download',            color: '#d97706', desc: 'A visitor downloaded a file from the website, such as the First Year Guide or Sponsorship Prospectus.' },
-  { prefix: 'contact:',      name: 'Contact & Socials',   color: '#ea580c', desc: 'A visitor clicked a social media link, LinkedIn profile, or a join/contact button.' },
-  { prefix: 'nav:',          name: 'Navigation',          color: '#6b7280', desc: 'A visitor clicked a navigation link, such as the Membership button in the header.' },
+  { prefix: 'sponsor-page:', name: 'Sponsor Page',        color: '#00F0FF', desc: "A visitor clicked through to a sponsor's website from the Sponsors page." },
+  { prefix: 'sponsor-opp:',  name: 'Sponsor Opportunity', color: '#22c55e', desc: 'A visitor clicked on a career opportunity or internship posted by a sponsor on the Careers page.' },
+  { prefix: 'event-detail:', name: 'Event Detail',        color: '#8b5cf6', desc: 'A visitor opened an event card in the calendar to read its full details.' },
+  { prefix: 'event-signup:', name: 'Event Signup',        color: '#f59e0b', desc: 'A visitor clicked the registration or signup link for a specific event.' },
+  { prefix: 'download:',     name: 'Download',            color: '#f472b6', desc: 'A visitor downloaded a file such as the First Year Guide or Sponsorship Prospectus.' },
+  { prefix: 'contact:',      name: 'Contact & Socials',   color: '#38bdf8', desc: 'A visitor clicked a social media link, LinkedIn profile, or a join/contact button.' },
+  { prefix: 'nav:',          name: 'Navigation',          color: '#64748b', desc: 'A visitor clicked a navigation link, such as the Membership button in the header.' },
 ];
 
 function parseLabel(label: string) {
@@ -100,15 +103,12 @@ function parseLabel(label: string) {
   return { name: label, category: 'Other', color: '#9ca3af' };
 }
 
-// Group clicks by category for the category breakdown
 const byCategory = CATEGORIES.map(cat => {
   const count = clicksByLabel
     .filter(r => r.label.startsWith(cat.prefix))
     .reduce((sum, r) => sum + r._count.id, 0);
-  return { ...cat, count };
+  return { name: cat.name, count, color: cat.color, desc: cat.desc };
 }).filter(c => c.count > 0).sort((a, b) => b.count - a.count);
-
-const maxCategoryCount = byCategory[0]?.count || 1;
 
 function pageName(path: string) {
   const map: Record<string, string> = {
@@ -118,18 +118,36 @@ function pageName(path: string) {
   return map[path] ?? path;
 }
 
-function fmt(d: Date) {
-  return d.toLocaleString('en-AU', {
-    timeZone: 'Australia/Sydney',
-    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
-  });
-}
-
 const engagementRate = totalPageviews > 0
   ? Math.round((totalClicks / totalPageviews) * 100)
   : 0;
 
+const topPage = pageviews[0] ? pageName(pageviews[0].page) : '—';
+const topPageCount = pageviews[0]?._count.id ?? 0;
+const topClickParsed = clicksByLabel[0] ? parseLabel(clicksByLabel[0].label) : null;
+const topClickName = topClickParsed?.name ?? '—';
+const topClickCount = clicksByLabel[0]?._count.id ?? 0;
+
 const rangeLabel: Record<number, string> = { 7: 'Last 7 days', 30: 'Last 30 days', 90: 'Last 90 days' };
+
+// Chart data for client
+const chartPayload = {
+  pv: {
+    labels: dailyViewsRaw.map(r => r.day),
+    data: dailyViewsRaw.map(r => Number(r.count)),
+  },
+  outbound: clicksByLabel.slice(0, 8).map(r => {
+    const p = parseLabel(r.label);
+    return { name: p.name, count: r._count.id, color: p.color, category: p.category };
+  }),
+  donut: byCategory.map(c => ({ name: c.name, count: c.count, color: c.color })),
+  topPages: pageviews.slice(0, 6).map(r => ({
+    name: pageName(r.page),
+    path: r.page,
+    count: r._count.id,
+    share: totalPageviews > 0 ? Math.round((r._count.id / totalPageviews) * 100) : 0,
+  })),
+};
 ---
 
 <!doctype html>
@@ -138,293 +156,156 @@ const rangeLabel: Record<number, string> = { 7: 'Last 7 days', 30: 'Last 30 days
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SUDATA — Analytics</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      html, body { height: 100%; }
-
-      body {
-        background: #eef0f3;
-        color: #0f172a;
-        font-family: 'Inter', system-ui, sans-serif;
-        font-size: 13px;
-        line-height: 1.5;
+      :root {
+        --navy:   #020617;
+        --navy2:  #0a1628;
+        --navy3:  #0f1f3a;
+        --neon:   #00F0FF;
+        --neon12: rgba(0,240,255,0.12);
+        --neon18: rgba(0,240,255,0.18);
+        --neon40: rgba(0,240,255,0.40);
+        --grey:   #94a3b8;
+        --greydim:#475569;
+        --white:  #e2e8f0;
+        --font:   'JetBrains Mono', ui-monospace, monospace;
+        --radius: 2px;
       }
 
-      /* ─── Top bar ─────────────────────────────────────────── */
+      html, body { background: var(--navy); color: var(--grey); font-family: var(--font); font-size: 14px; }
+
+      ::-webkit-scrollbar { width: 4px; }
+      ::-webkit-scrollbar-track { background: var(--navy); }
+      ::-webkit-scrollbar-thumb { background: var(--neon18); }
+
+      /* ── Topbar ─────────────────────────────────────────────── */
       .topbar {
-        background: #fff;
-        border-bottom: 1px solid #dde1e7;
-        padding: 0 1.75rem;
-        height: 52px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        position: sticky;
-        top: 0;
-        z-index: 10;
+        border-bottom: 1px solid var(--neon18);
+        background: rgba(10,22,40,0.92);
+        backdrop-filter: blur(12px);
+        position: sticky; top: 0; z-index: 50;
+        padding: 0 32px; height: 48px;
+        display: flex; align-items: center; justify-content: space-between;
       }
-      .topbar-left { display: flex; align-items: center; gap: 0.75rem; }
-      .topbar-wordmark { font-size: 0.82rem; font-weight: 700; color: #0f172a; letter-spacing: 0.04em; }
-      .topbar-divider { width: 1px; height: 18px; background: #dde1e7; }
-      .topbar-title { font-size: 0.82rem; font-weight: 500; color: #64748b; }
-      .badge {
-        font-size: 0.6rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: #64748b;
-        background: #f1f5f9;
-        border: 1px solid #dde1e7;
-        border-radius: 4px;
-        padding: 0.1rem 0.45rem;
+      .topbar-left { display: flex; align-items: center; gap: 16px; }
+      .wordmark { font-size: 14px; font-weight: 700; color: var(--white); letter-spacing: 0.15em; text-transform: uppercase; }
+      .topbar-divider { width: 1px; height: 16px; background: var(--neon18); }
+      .topbar-sub { font-size: 12px; color: var(--greydim); letter-spacing: 0.05em; }
+      .range-tabs { display: flex; gap: 2px; }
+      .range-tab {
+        text-decoration: none; padding: 5px 14px;
+        font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+        color: var(--greydim); border: 1px solid transparent;
+        transition: all 0.15s;
       }
-      .range-tabs {
-        display: flex;
-        border: 1px solid #dde1e7;
-        border-radius: 7px;
-        overflow: hidden;
-        background: #f8fafc;
-      }
-      .range-tabs a {
-        text-decoration: none;
-        padding: 0.3rem 0.85rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: #64748b;
-        border-right: 1px solid #dde1e7;
-        transition: background 0.1s, color 0.1s;
-        white-space: nowrap;
-      }
-      .range-tabs a:last-child { border-right: none; }
-      .range-tabs a:hover { background: #fff; color: #0f172a; }
-      .range-tabs a.active { background: #0f172a; color: #fff; font-weight: 600; }
+      .range-tab:hover { color: var(--neon); border-color: var(--neon18); }
+      .range-tab.active { color: var(--neon); background: var(--neon12); border-color: var(--neon40); }
 
-      /* ─── Dashboard canvas ────────────────────────────────── */
-      .dashboard {
-        padding: 1.25rem 1.75rem 1.75rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
+      /* ── Dashboard ──────────────────────────────────────────── */
+      .dashboard { padding: 20px 32px 24px; display: flex; flex-direction: column; gap: 14px; }
 
-      /* ─── KPI row ─────────────────────────────────────────── */
-      .kpi-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.75rem;
-      }
+      /* ── KPI row ────────────────────────────────────────────── */
+      .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
       .kpi-card {
-        background: #fff;
-        border: 1px solid #dde1e7;
-        border-radius: 10px;
-        padding: 1rem 1.2rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.2rem;
+        background: var(--navy2); border: 1px solid var(--neon18);
+        padding: 16px 20px; position: relative; overflow: hidden;
+        display: flex; flex-direction: column; gap: 4px;
+      }
+      .kpi-card::before {
+        content: ''; position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
+        background: linear-gradient(90deg, transparent, var(--neon), transparent);
+        opacity: 0.4;
       }
       .kpi-label {
-        font-size: 0.67rem;
-        font-weight: 600;
-        color: #94a3b8;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+        font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+        text-transform: uppercase; color: var(--greydim);
       }
-      .kpi-value {
-        font-size: 1.9rem;
-        font-weight: 700;
-        color: #0f172a;
-        line-height: 1.1;
-        font-variant-numeric: tabular-nums;
-        letter-spacing: -0.02em;
-      }
-      .kpi-trend {
-        font-size: 0.7rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.2rem;
-        margin-top: 0.1rem;
-      }
-      .kpi-trend.up   { color: #16a34a; }
-      .kpi-trend.down { color: #dc2626; }
-      .kpi-trend.flat { color: #94a3b8; }
-      .kpi-sub { font-size: 0.67rem; color: #94a3b8; margin-top: 0.1rem; }
+      .kpi-value { font-size: 32px; font-weight: 700; color: var(--white); letter-spacing: -0.02em; line-height: 1; margin-top: 4px; }
+      .kpi-trend { font-size: 12px; font-weight: 600; margin-top: 4px; }
+      .kpi-trend.up   { color: #34d399; }
+      .kpi-trend.down { color: #f87171; }
+      .kpi-trend.flat { color: var(--greydim); }
+      .kpi-sub { font-size: 11px; color: var(--greydim); margin-top: 2px; }
 
-      /* ─── Main grid (two columns) ─────────────────────────── */
-      .main-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
-      }
-      .main-grid-wide {
-        display: grid;
-        grid-template-columns: 3fr 2fr;
-        gap: 0.75rem;
-      }
+      /* ── Grid rows ──────────────────────────────────────────── */
+      .grid-row { display: grid; gap: 12px; }
+      .grid-2-1 { grid-template-columns: 2fr 1fr; }
 
-      /* ─── Panel ───────────────────────────────────────────── */
+      /* ── Panel ──────────────────────────────────────────────── */
       .panel {
-        background: #fff;
-        border: 1px solid #dde1e7;
-        border-radius: 10px;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
+        background: var(--navy2); border: 1px solid var(--neon18);
+        display: flex; flex-direction: column;
       }
       .panel-header {
-        padding: 0.7rem 1.1rem 0.65rem;
-        border-bottom: 1px solid #eef0f3;
-        display: flex;
-        align-items: baseline;
-        gap: 0.5rem;
+        padding: 14px 18px 12px;
+        border-bottom: 1px solid rgba(0,240,255,0.08);
         flex-shrink: 0;
+        display: flex; align-items: baseline; gap: 8px;
       }
       .panel-title {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: #0f172a;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
+        font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+        text-transform: uppercase; color: var(--greydim);
       }
-      .panel-sub { font-size: 0.7rem; color: #94a3b8; }
-      .panel-body {
-        overflow-y: auto;
-        flex: 1;
-      }
-      /* Fixed heights for panels so they fit in one view */
-      .panel-cat  { max-height: 310px; }
-      .panel-pages { max-height: 310px; }
-      .panel-links { max-height: 320px; }
-      .panel-recent { max-height: 320px; }
+      .panel-body { flex: 1; display: flex; flex-direction: column; }
 
-      /* ─── Category bars ───────────────────────────────────── */
-      .cat-row {
-        display: grid;
-        grid-template-columns: 148px 1fr 52px 52px;
-        align-items: center;
-        gap: 0.6rem;
-        padding: 0.6rem 1.1rem;
-        border-bottom: 1px solid #f1f5f9;
-      }
-      .cat-row:last-child { border-bottom: none; }
-      .cat-name {
-        display: flex;
-        align-items: center;
-        gap: 0.45rem;
-        font-size: 0.78rem;
-        font-weight: 500;
-        color: #0f172a;
-        white-space: nowrap;
-      }
-      .cat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-      .cat-bar-bg { background: #f1f5f9; height: 5px; border-radius: 3px; overflow: hidden; }
-      .cat-bar-fill { height: 100%; border-radius: 3px; }
-      .cat-count { text-align: right; font-size: 0.8rem; font-weight: 700; color: #0f172a; font-variant-numeric: tabular-nums; }
-      .cat-pct { text-align: right; font-size: 0.7rem; color: #94a3b8; font-variant-numeric: tabular-nums; }
+      /* ── Chart containers ───────────────────────────────────── */
+      .chart-wrap { padding: 16px 18px; }
+      .chart-wrap .chart-inner { position: relative; }
+      .pv-inner    { height: 240px; }
+      .ob-inner    { height: 220px; }
+      .donut-inner { height: 120px; width: 120px; }
 
-      /* ─── Legend strip ────────────────────────────────────── */
-      .legend-strip {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.35rem;
-        padding: 0.65rem 1.1rem;
-        border-top: 1px solid #eef0f3;
-        background: #f8fafc;
-        flex-shrink: 0;
-      }
-      .legend-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        font-size: 0.68rem;
-        font-weight: 500;
-        color: #475569;
-        background: #fff;
-        border: 1px solid #dde1e7;
-        border-radius: 20px;
-        padding: 0.2rem 0.55rem;
-        white-space: nowrap;
-      }
-      .legend-chip-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+      /* ── Top pages list ─────────────────────────────────────── */
+      .pages-list { padding: 14px 18px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; max-height: 320px; }
+      .page-row {}
+      .page-row-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 5px; }
+      .page-name { font-size: 13px; color: var(--white); font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .page-meta { display: flex; gap: 14px; align-items: baseline; flex-shrink: 0; }
+      .page-share { font-size: 11px; color: var(--greydim); }
+      .page-count { font-size: 13px; color: var(--grey); }
+      .page-bar-bg { height: 2px; background: rgba(255,255,255,0.06); }
+      .page-bar-fill { height: 100%; background: var(--neon); opacity: 0.6; transition: width 0.5s ease; }
 
-      /* info tooltip */
-      .info-wrap { position: relative; display: inline-flex; margin-left: 2px; }
+      /* ── Donut section ──────────────────────────────────────── */
+      .donut-wrap { padding: 16px 18px; display: flex; gap: 20px; align-items: center; flex: 1; overflow: visible; }
+      .donut-canvas-wrap { width: 110px; height: 110px; flex-shrink: 0; }
+      .donut-legend { flex: 1; display: flex; flex-direction: column; gap: 10px; overflow: visible; }
+      .legend-row { display: flex; align-items: center; gap: 8px; overflow: visible; }
+      .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+      .legend-name { font-size: 11px; color: var(--grey); flex: 1; }
+      .legend-count { font-size: 12px; color: var(--white); font-weight: 600; }
+      .legend-pct { font-size: 10px; color: var(--greydim); width: 32px; text-align: right; }
+
+      /* ── Info tooltip ───────────────────────────────────────── */
+      .info-wrap { position: relative; display: inline-flex; margin-left: 3px; vertical-align: middle; }
       .info-btn {
-        width: 13px; height: 13px; border-radius: 50%;
-        background: #f1f5f9; border: 1px solid #dde1e7;
-        color: #94a3b8; font-size: 0.55rem; font-weight: 700;
+        width: 14px; height: 14px; border-radius: 50%;
+        background: var(--navy3); border: 1px solid var(--neon18);
+        color: var(--greydim); font-size: 9px; font-weight: 700;
         display: inline-flex; align-items: center; justify-content: center;
-        cursor: default; flex-shrink: 0; line-height: 1;
+        cursor: default; flex-shrink: 0;
       }
       .info-tooltip {
-        display: none;
-        position: absolute;
-        bottom: calc(100% + 6px);
-        left: 50%;
-        transform: translateX(-50%);
-        background: #0f172a;
-        border-radius: 6px;
-        padding: 0.45rem 0.65rem;
-        font-size: 0.67rem;
-        color: #e2e8f0;
-        line-height: 1.5;
-        width: 200px;
-        white-space: normal;
-        z-index: 50;
-        pointer-events: none;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+        display: none; position: absolute;
+        bottom: calc(100% + 8px); right: 0;
+        background: var(--navy3); border: 1px solid var(--neon18);
+        padding: 10px 12px; font-size: 11px; color: var(--white);
+        line-height: 1.6; width: 220px; white-space: normal;
+        z-index: 200; pointer-events: none;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.6);
       }
       .info-tooltip::after {
-        content: '';
-        position: absolute;
-        top: 100%; left: 50%;
-        transform: translateX(-50%);
-        border: 5px solid transparent;
-        border-top-color: #0f172a;
+        content: ''; position: absolute; top: 100%; right: 4px;
+        border: 5px solid transparent; border-top-color: var(--navy3);
       }
       .info-wrap:hover .info-tooltip { display: block; }
 
-      /* ─── Tables ──────────────────────────────────────────── */
-      table { width: 100%; border-collapse: collapse; }
-      th {
-        text-align: left;
-        font-size: 0.65rem;
-        font-weight: 600;
-        color: #94a3b8;
-        text-transform: uppercase;
-        letter-spacing: 0.07em;
-        padding: 0.55rem 1.1rem;
-        background: #f8fafc;
-        border-bottom: 1px solid #dde1e7;
-        position: sticky;
-        top: 0;
-        z-index: 1;
-      }
-      td { padding: 0.55rem 1.1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-      tbody tr:last-child td { border-bottom: none; }
-      tbody tr:hover td { background: #f8fafc; }
-
-      .link-name { font-size: 0.78rem; font-weight: 500; color: #0f172a; }
-      .link-cat { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.68rem; color: #64748b; }
-      .link-cat-dot { width: 6px; height: 6px; border-radius: 50%; }
-      .num { text-align: right; font-size: 0.78rem; font-weight: 600; color: #0f172a; font-variant-numeric: tabular-nums; }
-      .num-sub { text-align: right; font-size: 0.68rem; color: #94a3b8; }
-      .page-name-cell { font-size: 0.78rem; font-weight: 500; color: #0f172a; }
-      .page-path-cell { font-size: 0.65rem; color: #94a3b8; }
-      .time-col { text-align: right; font-size: 0.67rem; color: #94a3b8; white-space: nowrap; }
-      .from-col { font-size: 0.72rem; color: #64748b; }
-
-      /* ─── Empty state ─────────────────────────────────────── */
-      .empty { padding: 2rem 1.1rem; text-align: center; color: #94a3b8; font-size: 0.78rem; }
-      .empty strong { display: block; color: #64748b; font-size: 0.82rem; margin-bottom: 0.25rem; }
-
-      /* ─── Scrollbar styling ───────────────────────────────── */
-      .panel-body::-webkit-scrollbar { width: 4px; }
-      .panel-body::-webkit-scrollbar-track { background: transparent; }
-      .panel-body::-webkit-scrollbar-thumb { background: #dde1e7; border-radius: 4px; }
+      /* ── Empty state ────────────────────────────────────────── */
+      .empty { padding: 28px 18px; text-align: center; color: var(--greydim); font-size: 12px; letter-spacing: 0.05em; }
     </style>
   </head>
   <body>
@@ -432,15 +313,13 @@ const rangeLabel: Record<number, string> = { 7: 'Last 7 days', 30: 'Last 30 days
     <!-- Top bar -->
     <div class="topbar">
       <div class="topbar-left">
-        <span class="topbar-wordmark">SUDATA</span>
+        <span class="wordmark">SUDATA Website Analytics</span>
         <div class="topbar-divider"></div>
-        <span class="topbar-title">Website Analytics</span>
-        <span class="badge">Internal</span>
-        <span style="font-size:0.67rem;color:#94a3b8;">{rangeLabel[days] ?? `Last ${days} days`} — compared to prior {days}-day period</span>
+        <span class="topbar-sub">Internal — {rangeLabel[days] ?? `Last ${days} days`} vs prior {days}d</span>
       </div>
-      <nav class="range-tabs" aria-label="Date range">
+      <nav class="range-tabs">
         {[7, 30, 90].map(d => (
-          <a href={`?key=${key}&days=${d}`} class={days === d ? 'active' : ''}>{rangeLabel[d]}</a>
+          <a href={`?key=${key}&days=${d}`} class={`range-tab${days === d ? ' active' : ''}`}>{d}d</a>
         ))}
       </nav>
     </div>
@@ -449,227 +328,149 @@ const rangeLabel: Record<number, string> = { 7: 'Last 7 days', 30: 'Last 30 days
 
       <!-- KPI row -->
       <div class="kpi-row">
+
         <div class="kpi-card">
           <div class="kpi-label">Page Views</div>
-          <div class="kpi-value">{totalPageviews}</div>
-          {trend(totalPageviews, prevTotalPageviews) ? (
-            <div class={`kpi-trend ${trendDir(totalPageviews, prevTotalPageviews)}`}>
-              {trendDir(totalPageviews, prevTotalPageviews) === 'up' ? '▲' : '▼'} {trend(totalPageviews, prevTotalPageviews)} vs prior period
-            </div>
-          ) : (
-            <div class="kpi-sub">No prior period data</div>
-          )}
+          <div class="kpi-value">{totalPageviews.toLocaleString()}</div>
+          <div class={trend(totalPageviews, prevTotalPageviews) ? `kpi-trend ${trendDir(totalPageviews, prevTotalPageviews)}` : 'kpi-trend flat'}>
+            {trend(totalPageviews, prevTotalPageviews)
+              ? `${trendDir(totalPageviews, prevTotalPageviews) === 'up' ? '↑' : '↓'} ${trend(totalPageviews, prevTotalPageviews)} vs prior`
+              : '— no prior data yet'}
+          </div>
+          <div class="kpi-sub">Top: {topPage} ({topPageCount.toLocaleString()} views)</div>
         </div>
+
         <div class="kpi-card">
-          <div class="kpi-label">Link Clicks</div>
-          <div class="kpi-value">{totalClicks}</div>
-          {trend(totalClicks, prevTotalClicks) ? (
-            <div class={`kpi-trend ${trendDir(totalClicks, prevTotalClicks)}`}>
-              {trendDir(totalClicks, prevTotalClicks) === 'up' ? '▲' : '▼'} {trend(totalClicks, prevTotalClicks)} vs prior period
-            </div>
-          ) : (
-            <div class="kpi-sub">No prior period data</div>
-          )}
+          <div class="kpi-label">Outbound Clicks</div>
+          <div class="kpi-value">{totalClicks.toLocaleString()}</div>
+          <div class={trend(totalClicks, prevTotalClicks) ? `kpi-trend ${trendDir(totalClicks, prevTotalClicks)}` : 'kpi-trend flat'}>
+            {trend(totalClicks, prevTotalClicks)
+              ? `${trendDir(totalClicks, prevTotalClicks) === 'up' ? '↑' : '↓'} ${trend(totalClicks, prevTotalClicks)} vs prior`
+              : '— no prior data yet'}
+          </div>
+          <div class="kpi-sub">{engagementRate}% outbound click-through rate</div>
         </div>
+
         <div class="kpi-card">
-          <div class="kpi-label">Visitors</div>
-          <div class="kpi-value">{uniqueVisitors > 0 ? uniqueVisitors : '—'}</div>
-          {uniqueVisitors > 0 && prevUniqueVisitors > 0 ? (
-            <div class={`kpi-trend ${trendDir(uniqueVisitors, prevUniqueVisitors)}`}>
-              {trendDir(uniqueVisitors, prevUniqueVisitors) === 'up' ? '▲' : '▼'} {trend(uniqueVisitors, prevUniqueVisitors)} vs prior period
-            </div>
-          ) : (
-            <div class="kpi-sub">Approximate unique sessions</div>
-          )}
+          <div class="kpi-label">Unique Visitors</div>
+          <div class="kpi-value">{uniqueVisitors > 0 ? uniqueVisitors.toLocaleString() : '—'}</div>
+          <div class={uniqueVisitors > 0 && prevUniqueVisitors > 0 ? `kpi-trend ${trendDir(uniqueVisitors, prevUniqueVisitors)}` : 'kpi-trend flat'}>
+            {uniqueVisitors > 0 && prevUniqueVisitors > 0
+              ? `${trendDir(uniqueVisitors, prevUniqueVisitors) === 'up' ? '↑' : '↓'} ${trend(uniqueVisitors, prevUniqueVisitors)} vs prior`
+              : '— no prior data yet'}
+          </div>
+          <div class="kpi-sub">Approx. — counted per browser tab, not per person</div>
         </div>
+
         <div class="kpi-card">
-          <div class="kpi-label">Engagement Rate</div>
-          <div class="kpi-value">{engagementRate}%</div>
-          <div class="kpi-sub">Link clicks per page view</div>
+          <div class="kpi-label">Top Link</div>
+          <div class="kpi-value" style="font-size:16px;line-height:1.3;margin-top:6px;">{topClickName}</div>
+          <div class="kpi-sub" style="margin-top:4px;">{topClickCount.toLocaleString()} clicks (last {days}d)</div>
+          <div class="kpi-sub">&nbsp;</div>
         </div>
+
       </div>
 
-      <!-- Row 2: Category breakdown + Page visits -->
-      <div class="main-grid">
+      <!-- Row 2: Page views over time + Top pages -->
+      <div class="grid-row grid-2-1">
 
-        <!-- Clicks by category -->
-        <div class="panel" style="display:flex;flex-direction:column;">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Page views over time</span>
+          </div>
+          <div class="panel-body">
+            {chartPayload.pv.labels.length === 0 ? (
+              <div class="empty">No data for this period yet</div>
+            ) : (
+              <div class="chart-wrap">
+                <div class="chart-inner pv-inner"><canvas id="pv-chart"></canvas></div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Top pages</span>
+          </div>
+          <div class="panel-body">
+            {chartPayload.topPages.length === 0 ? (
+              <div class="empty">No data yet</div>
+            ) : (
+              <div class="pages-list">
+                {chartPayload.topPages.map(p => (
+                  <div class="page-row">
+                    <div class="page-row-top">
+                      <span class="page-name">{p.name}</span>
+                      <div class="page-meta">
+                        <span class="page-share">{p.share}%</span>
+                        <span class="page-count">{p.count.toLocaleString()}</span>
+                      </div>
+                    </div>
+                    <div class="page-bar-bg">
+                      <div class="page-bar-fill" style={`width:${p.share}%`}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Row 3: Outbound clicks chart + Category donut -->
+      <div class="grid-row grid-2-1">
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Outbound link clicks</span>
+            <span style="font-size:9px;color:var(--greydim);">colours match categories →</span>
+          </div>
+          <div class="panel-body">
+            {chartPayload.outbound.length === 0 ? (
+              <div class="empty">No click data yet</div>
+            ) : (
+              <div class="chart-wrap">
+                <div class="chart-inner ob-inner"><canvas id="outbound-chart"></canvas></div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Clicks by category</span>
-            <span class="panel-sub">What visitors engage with most</span>
+            <span style="font-size:9px;color:var(--greydim);">What visitors engage with most</span>
           </div>
-          <div class="panel-body panel-cat">
+          <div class="panel-body">
             {byCategory.length === 0 ? (
-              <div class="empty">
-                <strong>No click data yet</strong>
-                Data appears once visitors interact with the site.
-              </div>
+              <div class="empty">No click data yet</div>
             ) : (
-              byCategory.map(cat => {
-                const pct = Math.round((cat.count / maxCategoryCount) * 100);
-                const sharePct = Math.round((cat.count / (totalClicks || 1)) * 100);
-                return (
-                  <div class="cat-row">
-                    <div class="cat-name">
-                      <div class="cat-dot" style={`background:${cat.color}`}></div>
-                      {cat.name}
-                    </div>
-                    <div class="cat-bar-bg">
-                      <div class="cat-bar-fill" style={`width:${pct}%;background:${cat.color}`}></div>
-                    </div>
-                    <div class="cat-count">{cat.count}</div>
-                    <div class="cat-pct">{sharePct}%</div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-          <!-- Legend -->
-          <div class="legend-strip">
-            {CATEGORIES.map(cat => (
-              <div class="legend-chip">
-                <div class="legend-chip-dot" style={`background:${cat.color}`}></div>
-                {cat.name}
-                <span class="info-wrap">
-                  <span class="info-btn">i</span>
-                  <span class="info-tooltip">{cat.desc}</span>
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <!-- Page visits -->
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">Page visits</span>
-            <span class="panel-sub">Most loaded pages</span>
-          </div>
-          <div class="panel-body panel-pages">
-            {pageviews.length === 0 ? (
-              <div class="empty">
-                <strong>No page view data yet</strong>
-                Data appears here once the site receives traffic.
-              </div>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Page</th>
-                    <th style="text-align:right">Views</th>
-                    <th style="text-align:right">Share</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pageviews.map(row => {
-                    const sharePct = Math.round((row._count.id / (totalPageviews || 1)) * 100);
+              <div class="donut-wrap">
+                <div class="chart-inner donut-inner">
+                  <canvas id="donut-chart"></canvas>
+                </div>
+                <div class="donut-legend">
+                  {byCategory.map(cat => {
+                    const pct = totalClicks > 0 ? Math.round((cat.count / totalClicks) * 100) : 0;
                     return (
-                      <tr>
-                        <td>
-                          <div class="page-name-cell">{pageName(row.page)}</div>
-                          <div class="page-path-cell">{row.page}</div>
-                        </td>
-                        <td class="num">{row._count.id}</td>
-                        <td class="num-sub">{sharePct}%</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Row 3: Top links + Recent activity -->
-      <div class="main-grid-wide">
-
-        <!-- Top links -->
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">Top links clicked</span>
-            <span class="panel-sub">Ranked by total clicks</span>
-          </div>
-          <div class="panel-body panel-links">
-            {clicksByLabel.length === 0 ? (
-              <div class="empty">
-                <strong>No clicks recorded yet</strong>
-                Data appears here once visitors interact with the site.
-              </div>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Link</th>
-                    <th>Category</th>
-                    <th style="text-align:right">Clicks</th>
-                    <th style="text-align:right">Share</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {clicksByLabel.map(row => {
-                    const { name, category, color } = parseLabel(row.label);
-                    const sharePct = Math.round((row._count.id / (totalClicks || 1)) * 100);
-                    return (
-                      <tr>
-                        <td><div class="link-name">{name}</div></td>
-                        <td>
-                          <span class="link-cat">
-                            <span class="link-cat-dot" style={`background:${color}`}></span>
-                            {category}
+                      <div class="legend-row">
+                        <div class="legend-dot" style={`background:${cat.color}`}></div>
+                        <span class="legend-name">
+                          {cat.name}
+                          <span class="info-wrap">
+                            <span class="info-btn">i</span>
+                            <span class="info-tooltip">{cat.desc}</span>
                           </span>
-                        </td>
-                        <td class="num">{row._count.id}</td>
-                        <td class="num-sub">{sharePct}%</td>
-                      </tr>
+                        </span>
+                        <span class="legend-count">{cat.count}</span>
+                        <span class="legend-pct">{pct}%</span>
+                      </div>
                     );
                   })}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-
-        <!-- Recent activity -->
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">Recent activity</span>
-            <span class="panel-sub">Last 25 clicks, newest first</span>
-          </div>
-          <div class="panel-body panel-recent">
-            {recentClicks.length === 0 ? (
-              <div class="empty">
-                <strong>No activity yet</strong>
-                Recent clicks appear here as visitors use the site.
+                </div>
               </div>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Link</th>
-                    <th>From</th>
-                    <th style="text-align:right">Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentClicks.map(row => {
-                    const { name, color } = parseLabel(row.label);
-                    return (
-                      <tr>
-                        <td>
-                          <div class="link-name" style="display:flex;align-items:center;gap:0.3rem;">
-                            <span class="link-cat-dot" style={`background:${color}`}></span>
-                            {name}
-                          </div>
-                        </td>
-                        <td class="from-col">{pageName(row.page)}</td>
-                        <td class="time-col">{fmt(row.createdAt)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
             )}
           </div>
         </div>
@@ -677,5 +478,156 @@ const rangeLabel: Record<number, string> = { 7: 'Last 7 days', 30: 'Last 30 days
       </div>
 
     </div>
+
+    <!-- Chart.js -->
+    <script is:inline src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <script is:inline define:vars={{ chartPayload }}>
+      const d = chartPayload;
+      const NEON = '#00F0FF';
+      const NAVY3 = '#0f1f3a';
+      const GREY = '#94a3b8';
+      const GREYDIM = '#475569';
+      const WHITE = '#e2e8f0';
+      const FONT = "'JetBrains Mono', monospace";
+
+      const tooltipDefaults = (accent) => ({
+        backgroundColor: NAVY3,
+        borderColor: accent + '44',
+        borderWidth: 1,
+        titleColor: GREY,
+        bodyColor: WHITE,
+        titleFont: { family: FONT, size: 9 },
+        bodyFont: { family: FONT, size: 12, weight: '600' },
+        padding: 10,
+      });
+
+      // Page views line chart
+      const pvEl = document.getElementById('pv-chart');
+      if (pvEl && d.pv.labels.length) {
+        const ctx = pvEl.getContext('2d');
+        const grad = ctx.createLinearGradient(0, 0, 0, 180);
+        grad.addColorStop(0, NEON + '28');
+        grad.addColorStop(1, NEON + '00');
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: d.pv.labels,
+            datasets: [{
+              data: d.pv.data,
+              borderColor: NEON,
+              borderWidth: 1.5,
+              pointRadius: d.pv.labels.length > 20 ? 0 : 2,
+              pointHoverRadius: 4,
+              pointBackgroundColor: NEON,
+              tension: 0.4,
+              fill: true,
+              backgroundColor: grad,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                ...tooltipDefaults(NEON),
+                callbacks: { label: ctx => ` ${ctx.parsed.y.toLocaleString()} views` },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: GREYDIM, font: { family: FONT, size: 8 }, maxTicksLimit: 10, maxRotation: 0 },
+                grid: { display: false },
+                border: { display: false },
+              },
+              y: {
+                ticks: { color: GREYDIM, font: { family: FONT, size: 8 }, callback: v => v >= 1000 ? (v/1000).toFixed(1)+'k' : v },
+                grid: { color: 'rgba(255,255,255,0.04)' },
+                border: { display: false },
+              },
+            },
+          },
+        });
+      }
+
+      // Outbound clicks horizontal bar chart
+      const obEl = document.getElementById('outbound-chart');
+      if (obEl && d.outbound.length) {
+        new Chart(obEl.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: d.outbound.map(r => r.name),
+            datasets: [{
+              data: d.outbound.map(r => r.count),
+              backgroundColor: d.outbound.map(r => r.color + '55'),
+              borderColor: d.outbound.map(r => r.color),
+              borderWidth: 1,
+              borderRadius: 1,
+              borderSkipped: false,
+            }],
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                ...tooltipDefaults(NEON),
+                callbacks: {
+                label: ctx => ` ${ctx.parsed.x.toLocaleString()} clicks`,
+                afterLabel: ctx => ` ${d.outbound[ctx.dataIndex].category}`,
+              },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: GREYDIM, font: { family: FONT, size: 8 }, stepSize: 1, callback: v => Number.isInteger(v) ? v : '' },
+                grid: { color: 'rgba(255,255,255,0.04)' },
+                border: { display: false },
+              },
+              y: {
+                ticks: { color: WHITE, font: { family: FONT, size: 9 } },
+                grid: { display: false },
+                border: { display: false },
+              },
+            },
+          },
+        });
+      }
+
+      // Category donut chart
+      const donutEl = document.getElementById('donut-chart');
+      if (donutEl && d.donut.length) {
+        new Chart(donutEl.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: d.donut.map(r => r.name),
+            datasets: [{
+              data: d.donut.map(r => r.count),
+              backgroundColor: d.donut.map(r => r.color + '66'),
+              borderColor: d.donut.map(r => r.color),
+              borderWidth: 1.5,
+              hoverOffset: 4,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                ...tooltipDefaults(NEON),
+                callbacks: { label: ctx => ` ${ctx.parsed.toLocaleString()} clicks` },
+              },
+            },
+          },
+        });
+      }
+    </script>
+
   </body>
 </html>
