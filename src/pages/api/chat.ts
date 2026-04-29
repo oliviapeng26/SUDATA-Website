@@ -1,8 +1,12 @@
 import type { APIRoute } from "astro";
 import { getContextForQuery } from "../../lib/rag";
 
-const OLLAMA_GENERATE = "http://localhost:11434/api/generate";
-const MODEL = "llama3.2";
+const GEMINI_MODEL = "gemini-3-flash";
+
+function geminiGenerateUrl(apiKey: string): string {
+  const base = "https://generativelanguage.googleapis.com/v1beta/models";
+  return `${base}/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+}
 
 const SYSTEM_PROMPT = `You are Sudino, the friendly mascot of SUDATA (Sydney University Data Analytics society at USYD). You are a data-loving dinosaur: warm, curious, and genuinely helpful to students.
 
@@ -14,6 +18,13 @@ Voice and style:
 - If something isn't in the context, say you are not sure and point them to sudata.com.au, the USU club page, or @usyd.sudata on Instagram.
 
 Answer concisely unless the user asks for detail.`;
+
+type GeminiGenerateContentResponse = {
+  candidates?: Array<{
+    content?: { parts?: Array<{ text?: string }> };
+  }>;
+  error?: { code?: number; message?: string; status?: string };
+};
 
 function extractMessage(request: Request, rawBody: string): string | null {
   const trimmed = rawBody.trim();
@@ -70,7 +81,29 @@ function extractMessage(request: Request, rawBody: string): string | null {
   return trimmed;
 }
 
+function extractGeminiText(data: GeminiGenerateContentResponse): string | null {
+  const parts = data.candidates?.[0]?.content?.parts;
+  if (!parts?.length) return null;
+  const texts = parts.map((p) => p.text).filter((t): t is string => typeof t === "string");
+  if (texts.length === 0) return null;
+  return texts.join("");
+}
+
 export const POST: APIRoute = async ({ request }) => {
+  const apiKey = import.meta.env.GEMINI_API_KEY;
+  if (apiKey === undefined || apiKey === null || String(apiKey).trim() === "") {
+    return new Response(
+      JSON.stringify({
+        error:
+          "Chat is not configured: set GEMINI_API_KEY in your environment (e.g. `.env`).",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   let raw: string;
   try {
     raw = await request.text();
@@ -92,7 +125,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(
       JSON.stringify({
         error:
-          "Expected a JSON body like {\"message\":\"your question\"} or text/plain with the question.",
+          'Expected a JSON body like {"message":"your question"} or text/plain with the question.',
       }),
       {
         status: 400,
@@ -112,32 +145,39 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const prompt = `${SYSTEM_PROMPT}
+  const systemInstructionText = `${SYSTEM_PROMPT}
 
 ### Retrieved context (SUDATA knowledge base — use to ground answers)
-${context}
+${context}`;
 
-### User message
+  const userText = `### User message
 ${message}
 
 ### Sudino (reply now, in character):`;
 
-  let ollamaRes: Response;
+  const geminiBody = {
+    systemInstruction: {
+      parts: [{ text: systemInstructionText }],
+    },
+    contents: [
+      {
+        role: "user" as const,
+        parts: [{ text: userText }],
+      },
+    ],
+  };
+
+  let geminiRes: Response;
   try {
-    ollamaRes = await fetch(OLLAMA_GENERATE, {
+    geminiRes = await fetch(geminiGenerateUrl(String(apiKey)), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
-        prompt,
-        stream: false,
-      }),
+      body: JSON.stringify(geminiBody),
     });
   } catch {
     return new Response(
       JSON.stringify({
-        error:
-          "Could not reach Ollama at localhost:11434. Is `ollama serve` running?",
+        error: "Could not reach the Gemini API. Check your network and try again.",
       }),
       {
         status: 502,
@@ -146,41 +186,54 @@ ${message}
     );
   }
 
-  if (!ollamaRes.ok) {
-    const errText = await ollamaRes.text();
-    return new Response(
-      JSON.stringify({
-        error: "Ollama request failed",
-        detail: errText.slice(0, 500),
-      }),
-      {
-        status: 502,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
-
-  let data: unknown;
+  const rawBodyText = await geminiRes.text();
+  let data: GeminiGenerateContentResponse;
   try {
-    data = await ollamaRes.json();
+    data = JSON.parse(rawBodyText) as GeminiGenerateContentResponse;
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON from Ollama" }), {
-      status: 502,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        error: "Invalid JSON from Gemini API",
+        detail: rawBodyText.slice(0, 500),
+      }),
+      {
+        status: 502,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
-  const text =
-    typeof data === "object" &&
-    data !== null &&
-    "response" in data &&
-    typeof (data as { response: unknown }).response === "string"
-      ? (data as { response: string }).response
-      : null;
+  if (!geminiRes.ok) {
+    const err = data.error;
+    const upstreamMsg =
+      err?.message ?? geminiRes.statusText ?? `HTTP ${geminiRes.status}`;
+    const isRateLimited =
+      geminiRes.status === 429 ||
+      err?.code === 429 ||
+      err?.status === "RESOURCE_EXHAUSTED";
 
-  if (text === null) {
     return new Response(
-      JSON.stringify({ error: "Ollama response missing 'response' field", data }),
+      JSON.stringify({
+        error: isRateLimited
+          ? "The AI service is rate-limited right now. Please wait a moment and try again."
+          : "Gemini API request failed.",
+        detail: upstreamMsg.slice(0, 500),
+      }),
+      {
+        status: isRateLimited ? 429 : 502,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  const text = extractGeminiText(data);
+
+  if (text === null || text === "") {
+    return new Response(
+      JSON.stringify({
+        error: "Gemini response missing text in candidates[0].content.parts",
+        detail: rawBodyText.slice(0, 500),
+      }),
       {
         status: 502,
         headers: { "Content-Type": "application/json" },
