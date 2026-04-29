@@ -905,7 +905,7 @@
     {
       "title": "Data-Hack",
       "date": "2026-04-18",
-      "time": "10:))AM",
+      "time": "10:00",
       "venue": "TBD",
       "type": "academic",
       "description": "Form a team to tackle real-world datasets to build innovative solutions to complex business problems. Extract insights, develop models, and get the opportunity to pitch your ideas in front of industry & faculty judges.",
@@ -935,21 +935,6 @@
       "id": "event_059"
     },
     {
-      "title": "“The Way In” Seminar",
-      "date": "2026-04-30",
-      "time": "18:30",
-      "venue": "Belinda Hutchinson Building 2150",
-      "type": "academic",
-      "description": "“The Way In” is a career-focused seminar hosted by Seafaring Vane Edu designed to help students better understand how to break into data science and related STEM careers. The session will feature analysts and professionals working in the data space who will share practical insights into internship and graduate recruitment, including how they approached applications, what employers look for, and what students can do to improve their chances.",
-      "collaborators": [
-        "SUDATA"
-      ],
-      "catering": "Food provided",
-      "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLSeBL6YgXO_7Cx990dXxaGKGehaZlJzeo6zFFGkYZ5rLoTWucQ/viewform?usp=dialog",
-      "attendees": 0,
-      "id": "event_060"
-    },
-    {
       "title": "Data Science Careers Panel",
       "date": "2026-05-04",
       "time": "TBA",
@@ -963,7 +948,7 @@
       "catering": "TBA",
       "signupLink": "TBA",
       "attendees": 0,
-      "id": "event_061"
+      "id": "event_060"
     },
     {
       "title": "Industry Networking Night",
@@ -978,7 +963,7 @@
       "catering": "Canapés and drinks",
       "signupLink": "TBA",
       "attendees": 0,
-      "id": "event_062"
+      "id": "event_061"
     },
     {
       "title": "DATA1001/2001 Revision Session",
@@ -993,7 +978,7 @@
       "catering": "Lunch and Snacks",
       "signupLink": "TBA",
       "attendees": 0,
-      "id": "event_063"
+      "id": "event_062"
     }
   ]
 }
