@@ -14,10 +14,15 @@ const days = parseInt(Astro.url.searchParams.get('days') || '30');
 const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 const prevSince = new Date(since.getTime() - days * 24 * 60 * 60 * 1000);
 
+// Visitor-supplied IANA timezone (set by client-side redirect on first load)
+const tzParam = Astro.url.searchParams.get('tz') ?? '';
+const validTz = /^[A-Za-z_]+(?:\/[A-Za-z_]+(?:\/[A-Za-z_]+)?)?$/.test(tzParam) ? tzParam : 'UTC';
+
 const [
   clicksByLabel, pageviews,
   totalClicks, totalPageviews,
   prevTotalClicks, prevTotalPageviews,
+  sponsorOutboundClicks, eventSignupClicks,
 ] = await Promise.all([
   prisma.linkClick.groupBy({
     by: ['label'],
@@ -35,6 +40,10 @@ const [
   prisma.pageView.count({ where: { createdAt: { gte: since } } }),
   prisma.linkClick.count({ where: { createdAt: { gte: prevSince, lt: since } } }),
   prisma.pageView.count({ where: { createdAt: { gte: prevSince, lt: since } } }),
+  // Conversion rate: sponsor outbound clicks originating from the sponsors page
+  prisma.linkClick.count({ where: { createdAt: { gte: since }, page: '/sponsors', label: { startsWith: 'sponsor-page:' } } }),
+  // Conversion rate: event signup clicks originating from the events page
+  prisma.linkClick.count({ where: { createdAt: { gte: since }, page: '/events', label: { startsWith: 'event-signup:' } } }),
 ]);
 
 const [uniqueClickSessions, uniqueViewSessions, prevUniqueViewSessions] = await Promise.all([
@@ -52,16 +61,47 @@ const [uniqueClickSessions, uniqueViewSessions, prevUniqueViewSessions] = await 
   }),
 ]);
 
-// Daily page views for chart
+// Daily page views for chart — bucket by visitor's local timezone.
+// Subquery computes the truncated local day once so ${validTz} is a single parameter;
+// multiple interpolations would produce $1/$2/$3 in Prisma which PostgreSQL treats as
+// different expressions and rejects the GROUP BY.
 const dailyViewsRaw = await prisma.$queryRaw<Array<{ day: string; count: number }>>`
   SELECT
-    TO_CHAR(DATE_TRUNC('day', "createdAt" AT TIME ZONE 'Australia/Sydney'), 'DD Mon') AS day,
+    TO_CHAR(local_day, 'YYYY-MM-DD') AS day,
     COUNT(*)::int AS count
-  FROM "PageView"
-  WHERE "createdAt" >= ${since}
-  GROUP BY DATE_TRUNC('day', "createdAt" AT TIME ZONE 'Australia/Sydney')
-  ORDER BY DATE_TRUNC('day', "createdAt" AT TIME ZONE 'Australia/Sydney') ASC
+  FROM (
+    SELECT DATE_TRUNC('day', "createdAt" AT TIME ZONE ${validTz}) AS local_day
+    FROM "PageView"
+    WHERE "createdAt" >= ${since}
+  ) sub
+  GROUP BY local_day
+  ORDER BY local_day ASC
 `;
+
+// Build a zero-filled daily series from 'since' through today in the visitor's timezone.
+// Without this, days with no data simply don't appear — so if today has no events yet,
+// the chart ends on the last active day and looks like yesterday is today.
+const _isoInTz = (d: Date) =>
+  new Intl.DateTimeFormat('sv', { timeZone: validTz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+const pvDbMap = new Map(dailyViewsRaw.map(r => [r.day, Number(r.count)]));
+const pvIsoLabels: string[] = [];
+const pvCounts: number[] = [];
+const todayIso = _isoInTz(new Date());
+const DAY_MS = 86_400_000;
+for (let ms = since.getTime() + DAY_MS / 2; ; ms += DAY_MS) {
+  const iso = _isoInTz(new Date(ms));
+  if (!pvIsoLabels.length || pvIsoLabels[pvIsoLabels.length - 1] !== iso) {
+    pvIsoLabels.push(iso);
+    pvCounts.push(pvDbMap.get(iso) ?? 0);
+  }
+  if (iso === todayIso) break;
+  if (ms > Date.now() + 2 * DAY_MS) break; // safety valve
+}
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const pvDisplayLabels = pvIsoLabels.map(iso => {
+  const [, m, d] = iso.split('-');
+  return `${d} ${MONTHS_SHORT[+m - 1]}`;
+});
 
 const uniqueVisitors = new Set([
   ...uniqueViewSessions.map(r => r.sessionId),
@@ -69,6 +109,12 @@ const uniqueVisitors = new Set([
 ]).size;
 
 const prevUniqueVisitors = new Set(prevUniqueViewSessions.map(r => r.sessionId)).size;
+
+// Conversion rates for key funnels
+const sponsorsPageViews = pageviews.find(p => p.page === '/sponsors')?._count.id ?? 0;
+const eventsPageViews   = pageviews.find(p => p.page === '/events')?._count.id ?? 0;
+const sponsorsRate = sponsorsPageViews > 0 ? Math.round((sponsorOutboundClicks / sponsorsPageViews) * 100) : null;
+const eventsRate   = eventsPageViews   > 0 ? Math.round((eventSignupClicks   / eventsPageViews)   * 100) : null;
 
 function trend(current: number, previous: number): string | null {
   if (previous === 0) return null;
@@ -133,8 +179,8 @@ const rangeLabel: Record<number, string> = { 7: 'Last 7 days', 30: 'Last 30 days
 // Chart data for client
 const chartPayload = {
   pv: {
-    labels: dailyViewsRaw.map(r => r.day),
-    data: dailyViewsRaw.map(r => Number(r.count)),
+    labels: pvDisplayLabels,
+    data: pvCounts,
   },
   outbound: clicksByLabel.slice(0, 8).map(r => {
     const p = parseLabel(r.label);
@@ -204,6 +250,17 @@ const chartPayload = {
       }
       .range-tab:hover { color: var(--neon); border-color: var(--neon18); }
       .range-tab.active { color: var(--neon); background: var(--neon12); border-color: var(--neon40); }
+
+      .topbar-refresh {
+        display: flex; align-items: center; gap: 10px; margin-left: 12px;
+      }
+      .refresh-age { font-size: 11px; color: var(--greydim); }
+      .refresh-btn {
+        background: none; border: 1px solid var(--neon18); color: var(--greydim);
+        font-size: 12px; padding: 3px 9px; cursor: pointer; font-family: var(--font);
+        transition: all 0.15s; line-height: 1;
+      }
+      .refresh-btn:hover { color: var(--neon); border-color: var(--neon40); }
 
       /* ── Dashboard ──────────────────────────────────────────── */
       .dashboard { padding: 20px 32px 24px; display: flex; flex-direction: column; gap: 14px; }
@@ -306,23 +363,73 @@ const chartPayload = {
 
       /* ── Empty state ────────────────────────────────────────── */
       .empty { padding: 28px 18px; text-align: center; color: var(--greydim); font-size: 12px; letter-spacing: 0.05em; }
+
+      /* ── Conversion rates section ───────────────────────────── */
+      .signals-section {
+        border-top: 1px solid rgba(0,240,255,0.08);
+        padding: 14px 18px 16px;
+        display: flex; flex-direction: column; gap: 12px;
+      }
+      .signals-header {
+        font-size: 10px; font-weight: 600; letter-spacing: 0.16em;
+        text-transform: uppercase; color: var(--greydim);
+      }
+      .signal-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .signal-label { font-size: 12px; color: var(--white); font-weight: 500; }
+      .signal-sub   { font-size: 10px; color: var(--greydim); margin-top: 2px; }
+      .signal-value { font-size: 22px; font-weight: 700; color: var(--neon); letter-spacing: -0.02em; flex-shrink: 0; }
+      .signal-value.dim { color: var(--greydim); font-size: 13px; font-weight: 400; }
     </style>
   </head>
   <body>
+
+    <!-- Redirect with browser timezone on first load so the server buckets dates correctly -->
+    <script is:inline>
+      (function () {
+        var url = new URL(window.location.href);
+        if (!url.searchParams.has('tz')) {
+          var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          url.searchParams.set('tz', tz);
+          window.location.replace(url.toString());
+        }
+      })();
+    </script>
 
     <!-- Top bar -->
     <div class="topbar">
       <div class="topbar-left">
         <span class="wordmark">SUDATA Website Analytics</span>
         <div class="topbar-divider"></div>
-        <span class="topbar-sub">Internal — {rangeLabel[days] ?? `Last ${days} days`} vs prior {days}d</span>
+        <span class="topbar-sub">Internal — {rangeLabel[days] ?? `Last ${days} days`} vs prior {days}d &nbsp;·&nbsp; {validTz}</span>
+        <div class="topbar-refresh">
+          <span class="refresh-age" id="refresh-age">updated just now</span>
+          <button class="refresh-btn" onclick="location.reload()">↺ refresh</button>
+        </div>
       </div>
       <nav class="range-tabs">
         {[7, 30, 90].map(d => (
-          <a href={`?key=${key}&days=${d}`} class={`range-tab${days === d ? ' active' : ''}`}>{d}d</a>
+          <a href={`?key=${key}&days=${d}&tz=${encodeURIComponent(validTz)}`} class={`range-tab${days === d ? ' active' : ''}`}>{d}d</a>
         ))}
       </nav>
     </div>
+
+    <script is:inline define:vars={{ renderedAt: Date.now() }}>
+      (function () {
+        var el = document.getElementById('refresh-age');
+        if (!el) return;
+        function tick() {
+          var secs = Math.floor((Date.now() - renderedAt) / 1000);
+          var text;
+          if (secs < 10)        text = 'updated just now';
+          else if (secs < 60)   text = 'updated ' + secs + 's ago';
+          else if (secs < 3600) text = 'updated ' + Math.floor(secs / 60) + 'm ago';
+          else                  text = 'updated ' + Math.floor(secs / 3600) + 'h ago';
+          el.textContent = text;
+        }
+        tick();
+        setInterval(tick, 10000);
+      })();
+    </script>
 
     <div class="dashboard">
 
@@ -359,7 +466,7 @@ const chartPayload = {
               ? `${trendDir(uniqueVisitors, prevUniqueVisitors) === 'up' ? '↑' : '↓'} ${trend(uniqueVisitors, prevUniqueVisitors)} vs prior`
               : '— no prior data yet'}
           </div>
-          <div class="kpi-sub">Approx. — counted per browser tab, not per person</div>
+          <div class="kpi-sub">Approx. — per device/browser (cookie), or per tab if declined</div>
         </div>
 
         <div class="kpi-card">
@@ -377,6 +484,7 @@ const chartPayload = {
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Page views over time</span>
+            <span style="font-size:9px;color:var(--greydim);">each page navigation = 1 view</span>
           </div>
           <div class="panel-body">
             {chartPayload.pv.labels.length === 0 ? (
@@ -469,6 +577,31 @@ const chartPayload = {
                       </div>
                     );
                   })}
+                </div>
+              </div>
+            )}
+            {(sponsorsPageViews > 0 || eventsPageViews > 0) && (
+              <div class="signals-section">
+                <div class="signals-header">Click-through rates</div>
+                <div class="signal-row">
+                  <div>
+                    <div class="signal-label">Sponsors page</div>
+                    <div class="signal-sub">sponsor clicks / sponsors page views</div>
+                  </div>
+                  {sponsorsRate !== null
+                    ? <div class="signal-value">{sponsorsRate}%</div>
+                    : <div class="signal-value dim">no data</div>
+                  }
+                </div>
+                <div class="signal-row">
+                  <div>
+                    <div class="signal-label">Events page</div>
+                    <div class="signal-sub">event signups / events page views</div>
+                  </div>
+                  {eventsRate !== null
+                    ? <div class="signal-value">{eventsRate}%</div>
+                    : <div class="signal-value dim">no data</div>
+                  }
                 </div>
               </div>
             )}

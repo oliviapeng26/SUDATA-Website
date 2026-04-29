@@ -333,14 +333,62 @@ const isHomePage = Astro.url.pathname === '/';
 				});
 			});
 		</script>
+		<!-- Cookie consent banner -->
+		<div
+			id="cookie-banner"
+			class="fixed bottom-0 left-0 right-0 z-50 hidden border-t border-sudata-neon/20 bg-sudata-navy/95 backdrop-blur-sm px-6 py-4"
+		>
+			<div class="mx-auto max-w-5xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+				<p class="text-sudata-grey text-sm leading-relaxed">
+					We use a cookie to count unique visitors across sessions — no personal data is collected.
+					<a href="/privacy" class="text-sudata-cyan/70 hover:text-sudata-cyan underline-offset-2 hover:underline ml-1 text-xs">Learn more</a>
+				</p>
+				<div class="flex gap-3 flex-shrink-0">
+					<button
+						id="cookie-decline"
+						class="px-4 py-1.5 text-sm text-sudata-grey border border-sudata-grey/30 hover:border-sudata-grey/60 transition-colors cursor-pointer bg-transparent"
+					>Decline</button>
+					<button
+						id="cookie-accept"
+						class="px-4 py-1.5 text-sm font-semibold text-sudata-navy bg-sudata-cyan hover:bg-sudata-cyan/80 transition-colors cursor-pointer"
+					>Accept</button>
+				</div>
+			</div>
+		</div>
+
 		<script>
 			(function () {
-				// Generate or reuse an anonymous session ID (resets when tab closes)
-				var sid = sessionStorage.getItem('_sid');
-				if (!sid) {
-					sid = Math.random().toString(36).slice(2) + Date.now().toString(36);
-					sessionStorage.setItem('_sid', sid);
+				var CONSENT_KEY = '_sudata_consent';
+				var VID_COOKIE  = '_vid';
+
+				function getCookie(name: string): string | null {
+					var m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+					return m ? m[1] : null;
 				}
+				function setCookie(name: string, value: string, days: number) {
+					var exp = new Date(Date.now() + days * 86400000).toUTCString();
+					document.cookie = name + '=' + value + '; expires=' + exp + '; path=/; SameSite=Lax';
+				}
+				function genId(): string {
+					return Math.random().toString(36).slice(2) + Date.now().toString(36);
+				}
+
+				var consent = localStorage.getItem(CONSENT_KEY); // 'accepted' | 'declined' | null
+
+				// Resolve the visitor ID based on current consent state
+				function resolveId(): string {
+					if (localStorage.getItem(CONSENT_KEY) === 'accepted') {
+						var vid = getCookie(VID_COOKIE);
+						if (!vid) { vid = genId(); setCookie(VID_COOKIE, vid, 365); }
+						return vid;
+					}
+					// No consent or declined — fall back to per-tab session ID
+					var sid = sessionStorage.getItem('_sid');
+					if (!sid) { sid = genId(); sessionStorage.setItem('_sid', sid); }
+					return sid;
+				}
+
+				var sid = resolveId();
 
 				function send(payload: Record<string, unknown>) {
 					fetch('/api/track', {
@@ -352,6 +400,26 @@ const isHomePage = Astro.url.pathname === '/';
 							sessionId: sid,
 						}, payload)),
 					}).catch(function () {});
+				}
+
+				// Show banner only if user hasn't decided yet
+				if (!consent) {
+					var banner = document.getElementById('cookie-banner');
+					if (banner) banner.style.display = 'block';
+
+					document.getElementById('cookie-accept')?.addEventListener('click', function () {
+						localStorage.setItem(CONSENT_KEY, 'accepted');
+						// Upgrade the session ID to a persistent cookie for future visits
+						var vid = genId();
+						setCookie(VID_COOKIE, vid, 365);
+						sid = vid;
+						if (banner) banner.style.display = 'none';
+					});
+
+					document.getElementById('cookie-decline')?.addEventListener('click', function () {
+						localStorage.setItem(CONSENT_KEY, 'declined');
+						if (banner) banner.style.display = 'none';
+					});
 				}
 
 				// Pageview on load
