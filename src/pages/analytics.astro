@@ -62,15 +62,17 @@ const [uniqueClickSessions, uniqueViewSessions, prevUniqueViewSessions] = await 
 ]);
 
 // Daily page views for chart — bucket by visitor's local timezone.
+// ::TIMESTAMPTZ cast is required: Prisma stores DateTime as TIMESTAMP (no tz); without the
+// cast, `AT TIME ZONE` interprets the stored UTC value as local time and converts back to UTC,
+// silently shifting every view ~10 h into the wrong day.
 // Subquery computes the truncated local day once so ${validTz} is a single parameter;
-// multiple interpolations would produce $1/$2/$3 in Prisma which PostgreSQL treats as
-// different expressions and rejects the GROUP BY.
+// multiple interpolations produce $1/$2/$3 in Prisma which PostgreSQL rejects in GROUP BY.
 const dailyViewsRaw = await prisma.$queryRaw<Array<{ day: string; count: number }>>`
   SELECT
     TO_CHAR(local_day, 'YYYY-MM-DD') AS day,
     COUNT(*)::int AS count
   FROM (
-    SELECT DATE_TRUNC('day', "createdAt" AT TIME ZONE ${validTz}) AS local_day
+    SELECT DATE_TRUNC('day', "createdAt"::TIMESTAMPTZ AT TIME ZONE ${validTz}) AS local_day
     FROM "PageView"
     WHERE "createdAt" >= ${since}
   ) sub

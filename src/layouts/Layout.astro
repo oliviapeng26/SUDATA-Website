@@ -336,21 +336,22 @@ const isHomePage = Astro.url.pathname === '/';
 		<!-- Cookie consent banner -->
 		<div
 			id="cookie-banner"
-			class="fixed bottom-0 left-0 right-0 z-50 hidden border-t border-sudata-neon/20 bg-sudata-navy/95 backdrop-blur-sm px-6 py-4"
+			class="fixed bottom-0 left-0 right-0 z-50 hidden border-t border-sudata-neon/20 bg-sudata-navy/95 backdrop-blur-sm px-4 sm:px-6 py-4"
 		>
-			<div class="mx-auto max-w-5xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+			<div class="mx-auto max-w-5xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 				<p class="text-sudata-grey text-sm leading-relaxed">
 					We use a cookie to count unique visitors across sessions — no personal data is collected.
+					You will only be asked once.
 					<a href="/privacy" class="text-sudata-cyan/70 hover:text-sudata-cyan underline-offset-2 hover:underline ml-1 text-xs">Learn more</a>
 				</p>
 				<div class="flex gap-3 flex-shrink-0">
 					<button
 						id="cookie-decline"
-						class="px-4 py-1.5 text-sm text-sudata-grey border border-sudata-grey/30 hover:border-sudata-grey/60 transition-colors cursor-pointer bg-transparent"
+						class="flex-1 sm:flex-none px-4 py-2 text-sm text-sudata-grey border border-sudata-grey/30 hover:border-sudata-grey/60 transition-colors cursor-pointer bg-transparent"
 					>Decline</button>
 					<button
 						id="cookie-accept"
-						class="px-4 py-1.5 text-sm font-semibold text-sudata-navy bg-sudata-cyan hover:bg-sudata-cyan/80 transition-colors cursor-pointer"
+						class="flex-1 sm:flex-none px-4 py-2 text-sm font-semibold text-sudata-navy bg-sudata-cyan hover:bg-sudata-cyan/80 transition-colors cursor-pointer"
 					>Accept</button>
 				</div>
 			</div>
