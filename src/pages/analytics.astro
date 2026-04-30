@@ -3,7 +3,7 @@ export const prerender = false;
 
 import prisma from '../lib/prisma';
 
-const secret = import.meta.env.ANALYTICS_SECRET;
+const secret = process.env.ANALYTICS_SECRET;
 const key = Astro.url.searchParams.get('key');
 
 if (!secret || key !== secret) {
