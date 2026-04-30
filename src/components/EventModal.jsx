@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 const EventModal = ({ event, onClose }) => {
   // Close on Escape key
   useEffect(() => {
+    console.log(event)
     const handleEscape = (e) => {
       if (e.key === 'Escape') onClose();
     };

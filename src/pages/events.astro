@@ -4,11 +4,14 @@ import EventCalendar from '../components/EventCalendar.jsx';
 import UpcomingEvents from '../components/UpcomingEvents.jsx';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { getFormattedEvents } from '../services/eventService';
 
 const pageTitle = 'Events | SUDATA';
 
 const eventsJson = readFileSync(join(process.cwd(), 'src/data/events.json'), 'utf-8');
-const eventsData = JSON.parse(eventsJson);
+// const eventsData = JSON.parse(eventsJson);
+
+const eventsData = JSON.parse(JSON.stringify(await getFormattedEvents()));
 ---
 
 
@@ -29,7 +32,7 @@ const eventsData = JSON.parse(eventsJson);
 
         <!-- UPCOMING_EVENTS section -->
         <div class="reveal-on-scroll max-w-7xl mx-auto mb-8 text-left">
-          <UpcomingEvents events={eventsData.events} client:load />
+          <UpcomingEvents events={eventsData} client:load />
         </div>
 
         <!-- CALENDAR_GUIDE section (renamed from NAVIGATION_PROTOCOL) -->
@@ -72,7 +75,7 @@ const eventsData = JSON.parse(eventsJson);
 
     <!-- Calendar Component -->
     <div class="max-w-7xl mx-auto">
-      <EventCalendar events={eventsData.events} client:load />
+      <EventCalendar events={eventsData} client:load />
     </div>
 
   </div>
