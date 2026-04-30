@@ -7,7 +7,7 @@ const secret = import.meta.env.ANALYTICS_SECRET ?? process.env.ANALYTICS_SECRET;
 const key = Astro.url.searchParams.get('key');
 
 if (!secret || key !== secret) {
-  return new Response('Unauthorized', { status: 403 });
+  return new Response(`Unauthorized (secret ${secret ? `set, len=${secret.length}` : 'UNSET'}, key ${key ? `set, len=${key.length}` : 'UNSET'})`, { status: 403 });
 }
 
 const days = parseInt(Astro.url.searchParams.get('days') || '30');
