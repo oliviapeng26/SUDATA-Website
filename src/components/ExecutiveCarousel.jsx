@@ -49,6 +49,7 @@ function ExecutiveCard({ executive, cardWidth = DEFAULT_CARD_WIDTH }) {
         href={executive.linkedin}
         target="_blank"
         rel="noopener noreferrer"
+        data-track={`contact:linkedin-${executive.name.toLowerCase().replace(/\s+/g, '-')}`}
         className="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-lg border border-sudata-neon/50 text-sudata-neon hover:bg-sudata-neon/20 active:bg-sudata-neon/30 hover:shadow-[0_0_15px_rgba(0,240,255,0.5)] transition-all duration-300 touch-manipulation"
         aria-label={`${executive.name} on LinkedIn`}
       >
