@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../prisma/generated"
@@ -12,18 +7,60 @@ datasource db {
   provider = "postgresql"
 }
 
-// Example models - reference these and the prisma docs for more information
-model User { 
-  id    Int     @id @default(autoincrement()) 
+model User {
+  id    Int     @id @default(autoincrement())
   email String  @unique
   name  String?
   posts Post[]
-} 
-model Post { 
-  id        Int     @id @default(autoincrement()) 
+}
+
+model Post {
+  id        Int     @id @default(autoincrement())
   title     String
-  content   String?
-  published Boolean @default(false) 
+  content   String
+  published Boolean @default(false)
   authorId  Int
-  author    User    @relation(fields: [authorId], references: [id]) 
-} 
+  author    User    @relation(fields: [authorId], references: [id])
+}
+
+model Event {
+  id            Int      @id @default(autoincrement())
+  title         String
+  date          DateTime
+  time          DateTime @db.Timestamptz(3)
+  venue         String
+  type          String
+  signupLink    String
+  catering      String
+  collaborators String[]
+  description   String
+  image_data    Bytes?
+  mime_type     String?
+}
+
+model LinkClick {
+  id        Int      @id @default(autoincrement())
+  label     String
+  url       String?
+  page      String
+  referrer  String?
+  sessionId String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([label])
+  @@index([page])
+}
+
+model PageView {
+  id        Int      @id @default(autoincrement())
+  page      String
+  referrer  String?
+  sessionId String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([page])
+}
