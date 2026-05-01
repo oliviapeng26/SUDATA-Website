@@ -62,7 +62,7 @@ export default function EventList({ events, onDelete, onEdit }) {
 
       {/* Social Column */}
       <div className="space-y-4">
-        <div className="text-[#FF00FF] font-bold text-lg tracking-widest uppercase border-b border-[#FF00FF]/30 pb-3">
+        <div className="text-[#FAD85D] font-bold text-lg tracking-widest uppercase border-b border-[#FAD85D]/30 pb-3">
           SOCIAL
         </div>
         <div className="space-y-3">
@@ -73,7 +73,7 @@ export default function EventList({ events, onDelete, onEdit }) {
                 event={event} 
                 onEdit={onEdit} 
                 onDelete={onDelete}
-                typeColor="#FF00FF"
+                typeColor="#FAD85D"
               />
             ))
           ) : (
