@@ -51,9 +51,7 @@ model LinkClick {
   @@index([createdAt])
   @@index([label])
   @@index([page])
-  @@index([label])
-  @@index([page])
-  @@index([createdAt])
+ 
 }
 
 model PageView {
@@ -66,7 +64,4 @@ model PageView {
 
   @@index([createdAt])
   @@index([page])
-}
-  @@index([page])
-  @@index([createdAt])
 }
