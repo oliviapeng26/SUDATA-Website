@@ -50,7 +50,7 @@ export const GET: APIRoute = async () => {
   try {
     const events = await prisma.event.findMany({
       orderBy: {
-        date: 'asc', // Sorts events by date (soonest first)
+        date: 'desc', // Sorts events by date (soonest first)
       },
     });
 
@@ -79,7 +79,6 @@ export const GET: APIRoute = async () => {
         const base64String = buffer.toString('base64');
         eventData.image_url = `data:${event.mime_type};base64,${base64String}`;
       }
-      console.log(eventData);
       return eventData;
     });
 

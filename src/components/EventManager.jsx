@@ -16,7 +16,6 @@ export default function EventManager() {
     try {
       const res = await fetch('/api/event');
       const data = await res.json();
-      console.log("Fetched Events:", data);
       setEvents(data);
     } catch (e) { console.error("Sync Error", e); }
   };

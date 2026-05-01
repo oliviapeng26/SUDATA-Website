@@ -19,7 +19,6 @@ const formatDateTime = (dateTimeStr) => {
 
 export default function EventList({ events, onDelete, onEdit }) {
   // Debugging log to confirm the data is here during render
-  console.log("Rendering EventList with count:", events?.length);
 
   // 1. Handle the "Truly Empty" state
   if (!events || events.length === 0) {
