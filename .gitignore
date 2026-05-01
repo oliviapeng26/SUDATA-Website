@@ -23,4 +23,7 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
+# Vercel CLI local config
+.vercel/
+
 /prisma/generated

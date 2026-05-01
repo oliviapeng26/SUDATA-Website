@@ -1,0 +1,768 @@
+---
+export const prerender = false;
+
+import prisma from '../lib/prisma';
+
+const secret = process.env.ANALYTICS_SECRET;
+const key = Astro.url.searchParams.get('key');
+
+if (!secret || key !== secret) {
+  return new Response('Unauthorized', { status: 403 });
+}
+
+const days = parseInt(Astro.url.searchParams.get('days') || '30');
+const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+const prevSince = new Date(since.getTime() - days * 24 * 60 * 60 * 1000);
+
+// Visitor-supplied IANA timezone (set by client-side redirect on first load)
+const tzParam = Astro.url.searchParams.get('tz') ?? '';
+const validTz = /^[A-Za-z_]+(?:\/[A-Za-z_]+(?:\/[A-Za-z_]+)?)?$/.test(tzParam) ? tzParam : 'UTC';
+
+const [
+  clicksByLabel, pageviews,
+  totalClicks, totalPageviews,
+  prevTotalClicks, prevTotalPageviews,
+  sponsorOutboundClicks, eventSignupClicks,
+] = await Promise.all([
+  prisma.linkClick.groupBy({
+    by: ['label'],
+    where: { createdAt: { gte: since } },
+    _count: { id: true },
+    orderBy: { _count: { id: 'desc' } },
+  }),
+  prisma.pageView.groupBy({
+    by: ['page'],
+    where: { createdAt: { gte: since } },
+    _count: { id: true },
+    orderBy: { _count: { id: 'desc' } },
+  }),
+  prisma.linkClick.count({ where: { createdAt: { gte: since } } }),
+  prisma.pageView.count({ where: { createdAt: { gte: since } } }),
+  prisma.linkClick.count({ where: { createdAt: { gte: prevSince, lt: since } } }),
+  prisma.pageView.count({ where: { createdAt: { gte: prevSince, lt: since } } }),
+  // Conversion rate: sponsor outbound clicks originating from the sponsors page
+  prisma.linkClick.count({ where: { createdAt: { gte: since }, page: '/sponsors', label: { startsWith: 'sponsor-page:' } } }),
+  // Conversion rate: event signup clicks originating from the events page
+  prisma.linkClick.count({ where: { createdAt: { gte: since }, page: '/events', label: { startsWith: 'event-signup:' } } }),
+]);
+
+const [uniqueClickSessions, uniqueViewSessions, prevUniqueViewSessions] = await Promise.all([
+  prisma.linkClick.findMany({
+    where: { createdAt: { gte: since }, sessionId: { not: null } },
+    select: { sessionId: true }, distinct: ['sessionId'],
+  }),
+  prisma.pageView.findMany({
+    where: { createdAt: { gte: since }, sessionId: { not: null } },
+    select: { sessionId: true }, distinct: ['sessionId'],
+  }),
+  prisma.pageView.findMany({
+    where: { createdAt: { gte: prevSince, lt: since }, sessionId: { not: null } },
+    select: { sessionId: true }, distinct: ['sessionId'],
+  }),
+]);
+
+// Daily page views for chart — bucket by visitor's local timezone.
+// ::TIMESTAMPTZ cast is required: Prisma stores DateTime as TIMESTAMP (no tz); without the
+// cast, `AT TIME ZONE` interprets the stored UTC value as local time and converts back to UTC,
+// silently shifting every view ~10 h into the wrong day.
+// Subquery computes the truncated local day once so ${validTz} is a single parameter;
+// multiple interpolations produce $1/$2/$3 in Prisma which PostgreSQL rejects in GROUP BY.
+const dailyViewsRaw = await prisma.$queryRaw<Array<{ day: string; count: number }>>`
+  SELECT
+    TO_CHAR(local_day, 'YYYY-MM-DD') AS day,
+    COUNT(*)::int AS count
+  FROM (
+    SELECT DATE_TRUNC('day', "createdAt"::TIMESTAMPTZ AT TIME ZONE ${validTz}) AS local_day
+    FROM "PageView"
+    WHERE "createdAt" >= ${since}
+  ) sub
+  GROUP BY local_day
+  ORDER BY local_day ASC
+`;
+
+// Build a zero-filled daily series from 'since' through today in the visitor's timezone.
+// Without this, days with no data simply don't appear — so if today has no events yet,
+// the chart ends on the last active day and looks like yesterday is today.
+const _isoInTz = (d: Date) =>
+  new Intl.DateTimeFormat('sv', { timeZone: validTz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+const pvDbMap = new Map(dailyViewsRaw.map(r => [r.day, Number(r.count)]));
+const pvIsoLabels: string[] = [];
+const pvCounts: number[] = [];
+const todayIso = _isoInTz(new Date());
+const DAY_MS = 86_400_000;
+for (let ms = since.getTime() + DAY_MS / 2; ; ms += DAY_MS) {
+  const iso = _isoInTz(new Date(ms));
+  if (!pvIsoLabels.length || pvIsoLabels[pvIsoLabels.length - 1] !== iso) {
+    pvIsoLabels.push(iso);
+    pvCounts.push(pvDbMap.get(iso) ?? 0);
+  }
+  if (iso === todayIso) break;
+  if (ms > Date.now() + 2 * DAY_MS) break; // safety valve
+}
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const pvDisplayLabels = pvIsoLabels.map(iso => {
+  const [, m, d] = iso.split('-');
+  return `${d} ${MONTHS_SHORT[+m - 1]}`;
+});
+
+const uniqueVisitors = new Set([
+  ...uniqueViewSessions.map(r => r.sessionId),
+  ...uniqueClickSessions.map(r => r.sessionId),
+]).size;
+
+const prevUniqueVisitors = new Set(prevUniqueViewSessions.map(r => r.sessionId)).size;
+
+// Conversion rates for key funnels
+const sponsorsPageViews = pageviews.find(p => p.page === '/sponsors')?._count.id ?? 0;
+const eventsPageViews   = pageviews.find(p => p.page === '/events')?._count.id ?? 0;
+const sponsorsRate = sponsorsPageViews > 0 ? Math.round((sponsorOutboundClicks / sponsorsPageViews) * 100) : null;
+const eventsRate   = eventsPageViews   > 0 ? Math.round((eventSignupClicks   / eventsPageViews)   * 100) : null;
+
+function trend(current: number, previous: number): string | null {
+  if (previous === 0) return null;
+  const pct = Math.round(((current - previous) / previous) * 100);
+  return (pct >= 0 ? '+' : '') + pct + '%';
+}
+function trendDir(current: number, previous: number): 'up' | 'down' | 'flat' {
+  if (previous === 0 || current === previous) return 'flat';
+  return current > previous ? 'up' : 'down';
+}
+function slugToTitle(slug: string) {
+  return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+const CATEGORIES = [
+  { prefix: 'sponsor-page:', name: 'Sponsor Page',        color: '#00F0FF', desc: "A visitor clicked through to a sponsor's website from the Sponsors page." },
+  { prefix: 'sponsor-opp:',  name: 'Sponsor Opportunity', color: '#22c55e', desc: 'A visitor clicked on a career opportunity or internship posted by a sponsor on the Careers page.' },
+  { prefix: 'event-detail:', name: 'Event Detail',        color: '#8b5cf6', desc: 'A visitor opened an event card in the calendar to read its full details.' },
+  { prefix: 'event-signup:', name: 'Event Signup',        color: '#f59e0b', desc: 'A visitor clicked the registration or signup link for a specific event.' },
+  { prefix: 'download:',     name: 'Download',            color: '#f472b6', desc: 'A visitor downloaded a file such as the First Year Guide or Sponsorship Prospectus.' },
+  { prefix: 'contact:',      name: 'Contact & Socials',   color: '#38bdf8', desc: 'A visitor clicked a social media link, LinkedIn profile, or a join/contact button.' },
+  { prefix: 'nav:',          name: 'Navigation',          color: '#64748b', desc: 'A visitor clicked a navigation link, such as the Membership button in the header.' },
+];
+
+function parseLabel(label: string) {
+  for (const cat of CATEGORIES) {
+    if (label.startsWith(cat.prefix)) {
+      const raw = label.slice(cat.prefix.length).split(':')[0];
+      return { name: slugToTitle(raw), category: cat.name, color: cat.color };
+    }
+  }
+  return { name: label, category: 'Other', color: '#9ca3af' };
+}
+
+const byCategory = CATEGORIES.map(cat => {
+  const count = clicksByLabel
+    .filter(r => r.label.startsWith(cat.prefix))
+    .reduce((sum, r) => sum + r._count.id, 0);
+  return { name: cat.name, count, color: cat.color, desc: cat.desc };
+}).filter(c => c.count > 0).sort((a, b) => b.count - a.count);
+
+function pageName(path: string) {
+  const map: Record<string, string> = {
+    '/': 'Home', '/sponsors': 'Sponsors', '/events': 'Events',
+    '/careers': 'Careers', '/about': 'About', '/photos': 'Photos', '/docs': 'Docs',
+  };
+  return map[path] ?? path;
+}
+
+const engagementRate = totalPageviews > 0
+  ? Math.round((totalClicks / totalPageviews) * 100)
+  : 0;
+
+const topPage = pageviews[0] ? pageName(pageviews[0].page) : '—';
+const topPageCount = pageviews[0]?._count.id ?? 0;
+const topClickParsed = clicksByLabel[0] ? parseLabel(clicksByLabel[0].label) : null;
+const topClickName = topClickParsed?.name ?? '—';
+const topClickCount = clicksByLabel[0]?._count.id ?? 0;
+
+const rangeLabel: Record<number, string> = { 7: 'Last 7 days', 30: 'Last 30 days', 90: 'Last 90 days' };
+
+// Chart data for client
+const chartPayload = {
+  pv: {
+    labels: pvDisplayLabels,
+    data: pvCounts,
+  },
+  outbound: clicksByLabel.slice(0, 8).map(r => {
+    const p = parseLabel(r.label);
+    return { name: p.name, count: r._count.id, color: p.color, category: p.category };
+  }),
+  donut: byCategory.map(c => ({ name: c.name, count: c.count, color: c.color })),
+  topPages: pageviews.slice(0, 6).map(r => ({
+    name: pageName(r.page),
+    path: r.page,
+    count: r._count.id,
+    share: totalPageviews > 0 ? Math.round((r._count.id / totalPageviews) * 100) : 0,
+  })),
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SUDATA — Analytics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --navy:   #020617;
+        --navy2:  #0a1628;
+        --navy3:  #0f1f3a;
+        --neon:   #00F0FF;
+        --neon12: rgba(0,240,255,0.12);
+        --neon18: rgba(0,240,255,0.18);
+        --neon40: rgba(0,240,255,0.40);
+        --grey:   #94a3b8;
+        --greydim:#475569;
+        --white:  #e2e8f0;
+        --font:   'JetBrains Mono', ui-monospace, monospace;
+        --radius: 2px;
+      }
+
+      html, body { background: var(--navy); color: var(--grey); font-family: var(--font); font-size: 14px; }
+
+      ::-webkit-scrollbar { width: 4px; }
+      ::-webkit-scrollbar-track { background: var(--navy); }
+      ::-webkit-scrollbar-thumb { background: var(--neon18); }
+
+      /* ── Topbar ─────────────────────────────────────────────── */
+      .topbar {
+        border-bottom: 1px solid var(--neon18);
+        background: rgba(10,22,40,0.92);
+        backdrop-filter: blur(12px);
+        position: sticky; top: 0; z-index: 50;
+        padding: 0 32px; height: 48px;
+        display: flex; align-items: center; justify-content: space-between;
+      }
+      .topbar-left { display: flex; align-items: center; gap: 16px; }
+      .wordmark { font-size: 14px; font-weight: 700; color: var(--white); letter-spacing: 0.15em; text-transform: uppercase; }
+      .topbar-divider { width: 1px; height: 16px; background: var(--neon18); }
+      .topbar-sub { font-size: 12px; color: var(--greydim); letter-spacing: 0.05em; }
+      .range-tabs { display: flex; gap: 2px; }
+      .range-tab {
+        text-decoration: none; padding: 5px 14px;
+        font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+        color: var(--greydim); border: 1px solid transparent;
+        transition: all 0.15s;
+      }
+      .range-tab:hover { color: var(--neon); border-color: var(--neon18); }
+      .range-tab.active { color: var(--neon); background: var(--neon12); border-color: var(--neon40); }
+
+      .topbar-refresh {
+        display: flex; align-items: center; gap: 10px; margin-left: 12px;
+      }
+      .refresh-age { font-size: 11px; color: var(--greydim); }
+      .refresh-btn {
+        background: none; border: 1px solid var(--neon18); color: var(--greydim);
+        font-size: 12px; padding: 3px 9px; cursor: pointer; font-family: var(--font);
+        transition: all 0.15s; line-height: 1;
+      }
+      .refresh-btn:hover { color: var(--neon); border-color: var(--neon40); }
+
+      /* ── Dashboard ──────────────────────────────────────────── */
+      .dashboard { padding: 20px 32px 24px; display: flex; flex-direction: column; gap: 14px; }
+
+      /* ── KPI row ────────────────────────────────────────────── */
+      .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+      .kpi-card {
+        background: var(--navy2); border: 1px solid var(--neon18);
+        padding: 16px 20px; position: relative; overflow: hidden;
+        display: flex; flex-direction: column; gap: 4px;
+      }
+      .kpi-card::before {
+        content: ''; position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
+        background: linear-gradient(90deg, transparent, var(--neon), transparent);
+        opacity: 0.4;
+      }
+      .kpi-label {
+        font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+        text-transform: uppercase; color: var(--greydim);
+      }
+      .kpi-value { font-size: 32px; font-weight: 700; color: var(--white); letter-spacing: -0.02em; line-height: 1; margin-top: 4px; }
+      .kpi-trend { font-size: 12px; font-weight: 600; margin-top: 4px; }
+      .kpi-trend.up   { color: #34d399; }
+      .kpi-trend.down { color: #f87171; }
+      .kpi-trend.flat { color: var(--greydim); }
+      .kpi-sub { font-size: 11px; color: var(--greydim); margin-top: 2px; }
+
+      /* ── Grid rows ──────────────────────────────────────────── */
+      .grid-row { display: grid; gap: 12px; }
+      .grid-2-1 { grid-template-columns: 2fr 1fr; }
+
+      /* ── Panel ──────────────────────────────────────────────── */
+      .panel {
+        background: var(--navy2); border: 1px solid var(--neon18);
+        display: flex; flex-direction: column;
+      }
+      .panel-header {
+        padding: 14px 18px 12px;
+        border-bottom: 1px solid rgba(0,240,255,0.08);
+        flex-shrink: 0;
+        display: flex; align-items: baseline; gap: 8px;
+      }
+      .panel-title {
+        font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+        text-transform: uppercase; color: var(--greydim);
+      }
+      .panel-body { flex: 1; display: flex; flex-direction: column; }
+
+      /* ── Chart containers ───────────────────────────────────── */
+      .chart-wrap { padding: 16px 18px; }
+      .chart-wrap .chart-inner { position: relative; }
+      .pv-inner    { height: 240px; }
+      .ob-inner    { height: 220px; }
+      .donut-inner { height: 120px; width: 120px; }
+
+      /* ── Top pages list ─────────────────────────────────────── */
+      .pages-list { padding: 14px 18px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; max-height: 320px; }
+      .page-row {}
+      .page-row-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 5px; }
+      .page-name { font-size: 13px; color: var(--white); font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .page-meta { display: flex; gap: 14px; align-items: baseline; flex-shrink: 0; }
+      .page-share { font-size: 11px; color: var(--greydim); }
+      .page-count { font-size: 13px; color: var(--grey); }
+      .page-bar-bg { height: 2px; background: rgba(255,255,255,0.06); }
+      .page-bar-fill { height: 100%; background: var(--neon); opacity: 0.6; transition: width 0.5s ease; }
+
+      /* ── Donut section ──────────────────────────────────────── */
+      .donut-wrap { padding: 16px 18px; display: flex; gap: 20px; align-items: center; flex: 1; overflow: visible; }
+      .donut-canvas-wrap { width: 110px; height: 110px; flex-shrink: 0; }
+      .donut-legend { flex: 1; display: flex; flex-direction: column; gap: 10px; overflow: visible; }
+      .legend-row { display: flex; align-items: center; gap: 8px; overflow: visible; }
+      .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+      .legend-name { font-size: 11px; color: var(--grey); flex: 1; }
+      .legend-count { font-size: 12px; color: var(--white); font-weight: 600; }
+      .legend-pct { font-size: 10px; color: var(--greydim); width: 32px; text-align: right; }
+
+      /* ── Info tooltip ───────────────────────────────────────── */
+      .info-wrap { position: relative; display: inline-flex; margin-left: 3px; vertical-align: middle; }
+      .info-btn {
+        width: 14px; height: 14px; border-radius: 50%;
+        background: var(--navy3); border: 1px solid var(--neon18);
+        color: var(--greydim); font-size: 9px; font-weight: 700;
+        display: inline-flex; align-items: center; justify-content: center;
+        cursor: default; flex-shrink: 0;
+      }
+      .info-tooltip {
+        display: none; position: absolute;
+        bottom: calc(100% + 8px); right: 0;
+        background: var(--navy3); border: 1px solid var(--neon18);
+        padding: 10px 12px; font-size: 11px; color: var(--white);
+        line-height: 1.6; width: 220px; white-space: normal;
+        z-index: 200; pointer-events: none;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+      }
+      .info-tooltip::after {
+        content: ''; position: absolute; top: 100%; right: 4px;
+        border: 5px solid transparent; border-top-color: var(--navy3);
+      }
+      .info-wrap:hover .info-tooltip { display: block; }
+
+      /* ── Empty state ────────────────────────────────────────── */
+      .empty { padding: 28px 18px; text-align: center; color: var(--greydim); font-size: 12px; letter-spacing: 0.05em; }
+
+      /* ── Conversion rates section ───────────────────────────── */
+      .signals-section {
+        border-top: 1px solid rgba(0,240,255,0.08);
+        padding: 14px 18px 16px;
+        display: flex; flex-direction: column; gap: 12px;
+      }
+      .signals-header {
+        font-size: 10px; font-weight: 600; letter-spacing: 0.16em;
+        text-transform: uppercase; color: var(--greydim);
+      }
+      .signal-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .signal-label { font-size: 12px; color: var(--white); font-weight: 500; }
+      .signal-sub   { font-size: 10px; color: var(--greydim); margin-top: 2px; }
+      .signal-value { font-size: 22px; font-weight: 700; color: var(--neon); letter-spacing: -0.02em; flex-shrink: 0; }
+      .signal-value.dim { color: var(--greydim); font-size: 13px; font-weight: 400; }
+    </style>
+  </head>
+  <body>
+
+    <!-- Redirect with browser timezone on first load so the server buckets dates correctly -->
+    <script is:inline>
+      (function () {
+        var url = new URL(window.location.href);
+        if (!url.searchParams.has('tz')) {
+          var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          url.searchParams.set('tz', tz);
+          window.location.replace(url.toString());
+        }
+      })();
+    </script>
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <span class="wordmark">SUDATA Website Analytics</span>
+        <div class="topbar-divider"></div>
+        <span class="topbar-sub">Internal — {rangeLabel[days] ?? `Last ${days} days`} vs prior {days}d &nbsp;·&nbsp; {validTz}</span>
+        <div class="topbar-refresh">
+          <span class="refresh-age" id="refresh-age">updated just now</span>
+          <button class="refresh-btn" onclick="location.reload()">↺ refresh</button>
+        </div>
+      </div>
+      <nav class="range-tabs">
+        {[7, 30, 90].map(d => (
+          <a href={`?key=${key}&days=${d}&tz=${encodeURIComponent(validTz)}`} class={`range-tab${days === d ? ' active' : ''}`}>{d}d</a>
+        ))}
+      </nav>
+    </div>
+
+    <script is:inline define:vars={{ renderedAt: Date.now() }}>
+      (function () {
+        var el = document.getElementById('refresh-age');
+        if (!el) return;
+        function tick() {
+          var secs = Math.floor((Date.now() - renderedAt) / 1000);
+          var text;
+          if (secs < 10)        text = 'updated just now';
+          else if (secs < 60)   text = 'updated ' + secs + 's ago';
+          else if (secs < 3600) text = 'updated ' + Math.floor(secs / 60) + 'm ago';
+          else                  text = 'updated ' + Math.floor(secs / 3600) + 'h ago';
+          el.textContent = text;
+        }
+        tick();
+        setInterval(tick, 10000);
+      })();
+    </script>
+
+    <div class="dashboard">
+
+      <!-- KPI row -->
+      <div class="kpi-row">
+
+        <div class="kpi-card">
+          <div class="kpi-label">Page Views</div>
+          <div class="kpi-value">{totalPageviews.toLocaleString()}</div>
+          <div class={trend(totalPageviews, prevTotalPageviews) ? `kpi-trend ${trendDir(totalPageviews, prevTotalPageviews)}` : 'kpi-trend flat'}>
+            {trend(totalPageviews, prevTotalPageviews)
+              ? `${trendDir(totalPageviews, prevTotalPageviews) === 'up' ? '↑' : '↓'} ${trend(totalPageviews, prevTotalPageviews)} vs prior`
+              : '— no prior data yet'}
+          </div>
+          <div class="kpi-sub">Top: {topPage} ({topPageCount.toLocaleString()} views)</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Outbound Clicks</div>
+          <div class="kpi-value">{totalClicks.toLocaleString()}</div>
+          <div class={trend(totalClicks, prevTotalClicks) ? `kpi-trend ${trendDir(totalClicks, prevTotalClicks)}` : 'kpi-trend flat'}>
+            {trend(totalClicks, prevTotalClicks)
+              ? `${trendDir(totalClicks, prevTotalClicks) === 'up' ? '↑' : '↓'} ${trend(totalClicks, prevTotalClicks)} vs prior`
+              : '— no prior data yet'}
+          </div>
+          <div class="kpi-sub">{engagementRate}% outbound click-through rate</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Unique Visitors</div>
+          <div class="kpi-value">{uniqueVisitors > 0 ? uniqueVisitors.toLocaleString() : '—'}</div>
+          <div class={uniqueVisitors > 0 && prevUniqueVisitors > 0 ? `kpi-trend ${trendDir(uniqueVisitors, prevUniqueVisitors)}` : 'kpi-trend flat'}>
+            {uniqueVisitors > 0 && prevUniqueVisitors > 0
+              ? `${trendDir(uniqueVisitors, prevUniqueVisitors) === 'up' ? '↑' : '↓'} ${trend(uniqueVisitors, prevUniqueVisitors)} vs prior`
+              : '— no prior data yet'}
+          </div>
+          <div class="kpi-sub">Approx. — per device/browser (cookie), or per tab if declined</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Top Link</div>
+          <div class="kpi-value" style="font-size:16px;line-height:1.3;margin-top:6px;">{topClickName}</div>
+          <div class="kpi-sub" style="margin-top:4px;">{topClickCount.toLocaleString()} clicks (last {days}d)</div>
+          <div class="kpi-sub">&nbsp;</div>
+        </div>
+
+      </div>
+
+      <!-- Row 2: Page views over time + Top pages -->
+      <div class="grid-row grid-2-1">
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Page views over time</span>
+            <span style="font-size:9px;color:var(--greydim);">each page navigation = 1 view</span>
+          </div>
+          <div class="panel-body">
+            {chartPayload.pv.labels.length === 0 ? (
+              <div class="empty">No data for this period yet</div>
+            ) : (
+              <div class="chart-wrap">
+                <div class="chart-inner pv-inner"><canvas id="pv-chart"></canvas></div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Top pages</span>
+          </div>
+          <div class="panel-body">
+            {chartPayload.topPages.length === 0 ? (
+              <div class="empty">No data yet</div>
+            ) : (
+              <div class="pages-list">
+                {chartPayload.topPages.map(p => (
+                  <div class="page-row">
+                    <div class="page-row-top">
+                      <span class="page-name">{p.name}</span>
+                      <div class="page-meta">
+                        <span class="page-share">{p.share}%</span>
+                        <span class="page-count">{p.count.toLocaleString()}</span>
+                      </div>
+                    </div>
+                    <div class="page-bar-bg">
+                      <div class="page-bar-fill" style={`width:${p.share}%`}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Row 3: Outbound clicks chart + Category donut -->
+      <div class="grid-row grid-2-1">
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Outbound link clicks</span>
+            <span style="font-size:9px;color:var(--greydim);">colours match categories →</span>
+          </div>
+          <div class="panel-body">
+            {chartPayload.outbound.length === 0 ? (
+              <div class="empty">No click data yet</div>
+            ) : (
+              <div class="chart-wrap">
+                <div class="chart-inner ob-inner"><canvas id="outbound-chart"></canvas></div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Clicks by category</span>
+            <span style="font-size:9px;color:var(--greydim);">What visitors engage with most</span>
+          </div>
+          <div class="panel-body">
+            {byCategory.length === 0 ? (
+              <div class="empty">No click data yet</div>
+            ) : (
+              <div class="donut-wrap">
+                <div class="chart-inner donut-inner">
+                  <canvas id="donut-chart"></canvas>
+                </div>
+                <div class="donut-legend">
+                  {byCategory.map(cat => {
+                    const pct = totalClicks > 0 ? Math.round((cat.count / totalClicks) * 100) : 0;
+                    return (
+                      <div class="legend-row">
+                        <div class="legend-dot" style={`background:${cat.color}`}></div>
+                        <span class="legend-name">
+                          {cat.name}
+                          <span class="info-wrap">
+                            <span class="info-btn">i</span>
+                            <span class="info-tooltip">{cat.desc}</span>
+                          </span>
+                        </span>
+                        <span class="legend-count">{cat.count}</span>
+                        <span class="legend-pct">{pct}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {(sponsorsPageViews > 0 || eventsPageViews > 0) && (
+              <div class="signals-section">
+                <div class="signals-header">Click-through rates</div>
+                <div class="signal-row">
+                  <div>
+                    <div class="signal-label">Sponsors page</div>
+                    <div class="signal-sub">sponsor clicks / sponsors page views</div>
+                  </div>
+                  {sponsorsRate !== null
+                    ? <div class="signal-value">{sponsorsRate}%</div>
+                    : <div class="signal-value dim">no data</div>
+                  }
+                </div>
+                <div class="signal-row">
+                  <div>
+                    <div class="signal-label">Events page</div>
+                    <div class="signal-sub">event signups / events page views</div>
+                  </div>
+                  {eventsRate !== null
+                    ? <div class="signal-value">{eventsRate}%</div>
+                    : <div class="signal-value dim">no data</div>
+                  }
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Chart.js -->
+    <script is:inline src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <script is:inline define:vars={{ chartPayload }}>
+      const d = chartPayload;
+      const NEON = '#00F0FF';
+      const NAVY3 = '#0f1f3a';
+      const GREY = '#94a3b8';
+      const GREYDIM = '#475569';
+      const WHITE = '#e2e8f0';
+      const FONT = "'JetBrains Mono', monospace";
+
+      const tooltipDefaults = (accent) => ({
+        backgroundColor: NAVY3,
+        borderColor: accent + '44',
+        borderWidth: 1,
+        titleColor: GREY,
+        bodyColor: WHITE,
+        titleFont: { family: FONT, size: 9 },
+        bodyFont: { family: FONT, size: 12, weight: '600' },
+        padding: 10,
+      });
+
+      // Page views line chart
+      const pvEl = document.getElementById('pv-chart');
+      if (pvEl && d.pv.labels.length) {
+        const ctx = pvEl.getContext('2d');
+        const grad = ctx.createLinearGradient(0, 0, 0, 180);
+        grad.addColorStop(0, NEON + '28');
+        grad.addColorStop(1, NEON + '00');
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: d.pv.labels,
+            datasets: [{
+              data: d.pv.data,
+              borderColor: NEON,
+              borderWidth: 1.5,
+              pointRadius: d.pv.labels.length > 20 ? 0 : 2,
+              pointHoverRadius: 4,
+              pointBackgroundColor: NEON,
+              tension: 0.4,
+              fill: true,
+              backgroundColor: grad,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                ...tooltipDefaults(NEON),
+                callbacks: { label: ctx => ` ${ctx.parsed.y.toLocaleString()} views` },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: GREYDIM, font: { family: FONT, size: 8 }, maxTicksLimit: 10, maxRotation: 0 },
+                grid: { display: false },
+                border: { display: false },
+              },
+              y: {
+                ticks: { color: GREYDIM, font: { family: FONT, size: 8 }, callback: v => v >= 1000 ? (v/1000).toFixed(1)+'k' : v },
+                grid: { color: 'rgba(255,255,255,0.04)' },
+                border: { display: false },
+              },
+            },
+          },
+        });
+      }
+
+      // Outbound clicks horizontal bar chart
+      const obEl = document.getElementById('outbound-chart');
+      if (obEl && d.outbound.length) {
+        new Chart(obEl.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: d.outbound.map(r => r.name),
+            datasets: [{
+              data: d.outbound.map(r => r.count),
+              backgroundColor: d.outbound.map(r => r.color + '55'),
+              borderColor: d.outbound.map(r => r.color),
+              borderWidth: 1,
+              borderRadius: 1,
+              borderSkipped: false,
+            }],
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                ...tooltipDefaults(NEON),
+                callbacks: {
+                label: ctx => ` ${ctx.parsed.x.toLocaleString()} clicks`,
+                afterLabel: ctx => ` ${d.outbound[ctx.dataIndex].category}`,
+              },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: GREYDIM, font: { family: FONT, size: 8 }, stepSize: 1, callback: v => Number.isInteger(v) ? v : '' },
+                grid: { color: 'rgba(255,255,255,0.04)' },
+                border: { display: false },
+              },
+              y: {
+                ticks: { color: WHITE, font: { family: FONT, size: 9 } },
+                grid: { display: false },
+                border: { display: false },
+              },
+            },
+          },
+        });
+      }
+
+      // Category donut chart
+      const donutEl = document.getElementById('donut-chart');
+      if (donutEl && d.donut.length) {
+        new Chart(donutEl.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: d.donut.map(r => r.name),
+            datasets: [{
+              data: d.donut.map(r => r.count),
+              backgroundColor: d.donut.map(r => r.color + '66'),
+              borderColor: d.donut.map(r => r.color),
+              borderWidth: 1.5,
+              hoverOffset: 4,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                ...tooltipDefaults(NEON),
+                callbacks: { label: ctx => ` ${ctx.parsed.toLocaleString()} clicks` },
+              },
+            },
+          },
+        });
+      }
+    </script>
+
+  </body>
+</html>
