@@ -1,16 +1,11 @@
 ---
-export const prerender = true;
+export const prerender = false;
 import Layout from '../layouts/Layout.astro';
 import EventCalendar from '../components/EventCalendar.jsx';
 import UpcomingEvents from '../components/UpcomingEvents.jsx';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { getFormattedEvents } from '../services/eventService';
 
 const pageTitle = 'Events | SUDATA';
-
-const eventsJson = readFileSync(join(process.cwd(), 'src/data/events.json'), 'utf-8');
-// const eventsData = JSON.parse(eventsJson);
 
 const eventsData = JSON.parse(JSON.stringify(await getFormattedEvents()));
 ---

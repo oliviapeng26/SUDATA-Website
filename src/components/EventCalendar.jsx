@@ -4,6 +4,7 @@ import { getSemesterInfo } from '../data/semesterDates';
 import { getHolidayName } from '../data/publicHolidays';
 
 const EventCalendar = ({ events }) => {
+  const revealClassName = 'reveal-on-scroll opacity-0 translate-y-[40px] transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]';
   const currentYear = new Date().getFullYear();
   // Keep null during SSR/SSG so the static HTML has no "today" circle,
   // avoiding a hydration mismatch. useEffect sets these client-side in
@@ -153,7 +154,7 @@ const EventCalendar = ({ events }) => {
   return (
     <div className="space-y-8">
       {/* Filters */}
-      <div className="reveal-on-scroll flex flex-wrap justify-center gap-3 sm:gap-4">
+      <div className={`${revealClassName} flex flex-wrap justify-center gap-3 sm:gap-4`}>
         {Object.entries(filterConfig).map(([type, config]) => (
           <button
             key={type}
@@ -181,7 +182,7 @@ const EventCalendar = ({ events }) => {
       </div>
 
       {/* Year Selector - Current Year + Archive Dropdown */}
-      <div className="reveal-on-scroll flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
+      <div className={`${revealClassName} flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4`}>
         <button
           onClick={() => {
             setSelectedYear(currentYear);
@@ -242,7 +243,7 @@ const EventCalendar = ({ events }) => {
       </div>
 
       {/* Month Navigation */}
-      <div className="reveal-on-scroll flex items-center justify-between max-w-2xl mx-auto px-2">
+      <div className={`${revealClassName} flex items-center justify-between max-w-2xl mx-auto px-2`}>
         <button
           onClick={() => {
             if (selectedMonth === 0) {
@@ -297,7 +298,7 @@ const EventCalendar = ({ events }) => {
       </div>
 
       {/* Calendar Grid */}
-      <div className="reveal-on-scroll bg-[#020617] rounded-xl sm:rounded-2xl border border-[#00F0FF]/20 p-3 sm:p-4 md:p-6 backdrop-blur-2xl"
+      <div className={`${revealClassName} bg-[#020617] rounded-xl sm:rounded-2xl border border-[#00F0FF]/20 p-3 sm:p-4 md:p-6 backdrop-blur-2xl`}
            style={{ boxShadow: '0 0 40px rgba(0,240,255,0.1)' }}>
         {/* Day Headers */}
         <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 sm:mb-4">
