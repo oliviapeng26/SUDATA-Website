@@ -6,31 +6,50 @@ const convertISOToFormats = (dateStr, timeStr) => {
   try {
     const date = new Date(dateStr);
     
-    // Use formatToParts to properly extract date/time in Sydney timezone
-    const sydneyFormatter = new Intl.DateTimeFormat('en-AU', {
+    const dateFormatter = new Intl.DateTimeFormat('en-AU', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
       timeZone: 'Australia/Sydney'
     });
     
-    const parts = sydneyFormatter.formatToParts(date);
+    const parts = dateFormatter.formatToParts(date);
     const partMap = {};
     parts.forEach(({ type, value }) => {
       partMap[type] = value;
     });
     
     const dateForInput = `${partMap.year}-${partMap.month}-${partMap.day}`;
-    const timeForInput = `${partMap.hour}:${partMap.minute}`;
+    const timeForInput = formatTimeForInput(timeStr);
     
     return { date: dateForInput, time: timeForInput };
   } catch (e) {
     console.error('Date conversion error:', e);
     return { date: '', time: '' };
   }
+};
+
+const formatTimeForInput = (timeStr) => {
+  if (!timeStr) return '';
+
+  const raw = String(timeStr);
+  if (/^\d{1,2}:\d{2}/.test(raw)) {
+    const [hour, minute] = raw.split(':');
+    return `${hour.padStart(2, '0')}:${minute.slice(0, 2)}`;
+  }
+
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const parts = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Sydney',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+
+  const partMap = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${partMap.hour}:${partMap.minute}`;
 };
 
 export default function EventForm({  onSuccess,initialData, }) {
@@ -52,7 +71,7 @@ export default function EventForm({  onSuccess,initialData, }) {
     // Update form when initialData changes (for edit mode)
     useEffect(() => {
         if (initialData) {
-            const { date: formattedDate, time: formattedTime } = convertISOToFormats(initialData.date, initialData.time);
+            const { date: formattedDate, time: formattedTime } = convertISOToFormats(initialData.date, initialData.timeInput || initialData.time);
             setFormData({
                 ...initialData,
                 date: formattedDate,

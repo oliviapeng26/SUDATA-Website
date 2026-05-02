@@ -1,19 +1,17 @@
 import { useState } from 'react';
 
-const formatDateTime = (dateTimeStr) => {
-  if (!dateTimeStr) return 'TBA';
+const formatDate = (dateStr) => {
+  if (!dateStr) return 'TBA';
   try {
-    const date = new Date(dateTimeStr);
+    const date = new Date(dateStr);
     return new Intl.DateTimeFormat('en-AU', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
       timeZone: 'Australia/Sydney'
     }).format(date);
   } catch (e) {
-    return dateTimeStr;
+    return dateStr;
   }
 };
 
@@ -138,7 +136,7 @@ function EventCard({ event, onEdit, onDelete, typeColor }) {
             {event.title}
           </h3>
           <p className="text-[10px] text-white/60 tracking-widest">
-            {formatDateTime(event.date)}
+            {formatDate(event.date)} · {event.timeDisplay || 'TBA'}
           </p>
         </div>
 

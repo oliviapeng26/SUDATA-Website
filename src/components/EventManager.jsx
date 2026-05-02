@@ -2,6 +2,53 @@ import { useState, useEffect } from 'react';
 import EventList from './EventList';
 import EventForm from './EventsFormPage';
 
+const SYDNEY_TIME_ZONE = 'Australia/Sydney';
+
+const toSydneyTimeInput = (value) => {
+  if (!value) return '';
+  const raw = String(value);
+
+  if (/^\d{1,2}:\d{2}/.test(raw)) {
+    const [hour, minute] = raw.split(':');
+    return `${hour.padStart(2, '0')}:${minute.slice(0, 2)}`;
+  }
+
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const parts = new Intl.DateTimeFormat('en-AU', {
+    timeZone: SYDNEY_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+
+  const partMap = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${partMap.hour}:${partMap.minute}`;
+};
+
+const toSydneyTimeDisplay = (value) => {
+  const timeInput = toSydneyTimeInput(value);
+  if (!timeInput) return 'TBA';
+
+  const [hourText, minute] = timeInput.split(':');
+  const hour = Number(hourText);
+  const suffix = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+
+  return `${String(displayHour).padStart(2, '0')}:${minute} ${suffix}`;
+};
+
+const normalizeEventTimes = (events) => {
+  if (!Array.isArray(events)) return [];
+
+  return events.map((event) => ({
+    ...event,
+    timeInput: toSydneyTimeInput(event.time),
+    timeDisplay: toSydneyTimeDisplay(event.time),
+  }));
+};
+
 export default function EventManager() {
   const [events, setEvents] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,7 +63,7 @@ export default function EventManager() {
     try {
       const res = await fetch('/api/event');
       const data = await res.json();
-      setEvents(data);
+      setEvents(normalizeEventTimes(data));
     } catch (e) { console.error("Sync Error", e); }
   };
 
