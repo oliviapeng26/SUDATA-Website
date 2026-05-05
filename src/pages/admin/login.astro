@@ -2,7 +2,7 @@
 import Layout from "../../layouts/Layout.astro";
 
 const nextParam = Astro.url.searchParams.get("next");
-const nextPath = nextParam && nextParam.startsWith("/") ? nextParam : "/admin/events";
+const nextPath = nextParam && nextParam.startsWith("/") ? nextParam : "/admin";
 ---
 
 <Layout title="Admin Login | SUDATA">

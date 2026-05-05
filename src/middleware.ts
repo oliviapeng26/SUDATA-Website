@@ -2,7 +2,7 @@ import { defineMiddleware } from "astro:middleware";
 import { isAdminRequest } from "./lib/adminAuth";
 
 const isAdminPage = (pathname: string) =>
-  (pathname.startsWith("/admin/") && pathname !== "/admin/login") || pathname === "/analytics";
+  pathname.startsWith("/admin/") && pathname !== "/admin/login";
 
 const isProtectedEventWrite = (pathname: string, method: string) =>
   pathname === "/api/event" && ["POST", "PUT", "DELETE"].includes(method.toUpperCase());
