@@ -4,7 +4,6 @@ import Analytics from '@vercel/analytics/astro'
 
 import '../styles/global.css';
 import SubcomRecruitment from '../components/SubcomRecruitment.jsx';
-import { isAdminRequest } from '../lib/adminAuth';
 
 interface Props {
 	title?: string;
@@ -12,7 +11,6 @@ interface Props {
 
 const { title = "SUDATA" } = Astro.props;
 const isHomePage = Astro.url.pathname === '/';
-const isAdmin = isAdminRequest(Astro.cookies);
 ---
 
 <!doctype html>
@@ -75,11 +73,9 @@ const isAdmin = isAdminRequest(Astro.cookies);
 							<a href="/docs" class="text-white/80 hover:text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] whitespace-nowrap">
 								Docs
 							</a>
-							{isAdmin && (
-								<a href="/admin" class="text-white/80 hover:text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] whitespace-nowrap">
-									Admin
-								</a>
-							)}
+							<a id="admin-nav-link" href="/admin" class="hidden text-white/80 hover:text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] whitespace-nowrap">
+								Admin
+							</a>
 							<a href="https://usu.edu.au/clubs/sydney-uni-data-society/" target="_blank" rel="noopener noreferrer" data-track="nav:usu-membership" class="text-sudata-cyan bg-sudata-cyan/10 border border-sudata-cyan/40 hover:bg-sudata-cyan/25 hover:border-sudata-cyan/70 hover:text-white hover:shadow-[0_0_20px_rgba(0,255,255,0.35)] hover:-translate-y-px px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 whitespace-nowrap">
 								Membership
 							</a>
@@ -199,6 +195,21 @@ const isAdmin = isAdminRequest(Astro.cookies);
 						mainNav.classList.remove('nav-mobile-expanded');
 					}
 				});
+			})();
+		</script>
+		<script>
+			(function () {
+				const adminLink = document.getElementById('admin-nav-link');
+				if (!adminLink) return;
+
+				fetch('/api/admin/me', { credentials: 'include' })
+					.then((res) => (res.ok ? res.json() : { isAdmin: false }))
+					.then((data) => {
+						if (data?.isAdmin) {
+							adminLink.classList.remove('hidden');
+						}
+					})
+					.catch(() => {});
 			})();
 		</script>
 
