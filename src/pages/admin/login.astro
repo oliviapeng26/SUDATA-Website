@@ -1,0 +1,80 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+const nextParam = Astro.url.searchParams.get("next");
+const nextPath = nextParam && nextParam.startsWith("/") ? nextParam : "/admin/events";
+---
+
+<Layout title="Admin Login | SUDATA">
+  <main class="min-h-screen bg-[#020617] pt-20 pb-20 px-4 sm:px-6">
+    <div class="max-w-md mx-auto">
+      <div class="border border-[#00F0FF]/30 bg-slate-900/60 p-8 sm:p-10 shadow-[0_0_40px_rgba(0,240,255,0.15)]">
+        <h1 class="text-2xl sm:text-3xl font-bold text-[#00F0FF] tracking-[0.2em] uppercase font-mono mb-3">
+          Admin Login
+        </h1>
+        <p class="text-[#94a3b8] text-sm font-mono mb-8">
+          Enter your admin password to access event management and analytics.
+        </p>
+
+        <form id="admin-login-form" class="space-y-5">
+          <div class="space-y-2">
+            <label for="password" class="text-[#00F0FF] text-[10px] tracking-[0.2em] uppercase font-bold font-mono">
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+              class="w-full bg-slate-900/60 border border-[#00F0FF]/20 p-4 text-white placeholder:text-white/20 font-mono text-sm focus:outline-none focus:border-[#00F0FF] focus:bg-slate-900/90 transition-all duration-300"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <p id="login-error" class="hidden text-red-400 text-xs font-mono"></p>
+
+          <button
+            type="submit"
+            class="w-full flex items-center justify-center gap-3 bg-[#00F0FF] text-[#020617] font-bold py-4 tracking-[0.3em] uppercase transition-all duration-300 shadow-[0_0_20px_rgba(0,240,255,0.35)] hover:bg-white hover:shadow-[0_0_28px_white]"
+          >
+            Login
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script is:inline define:vars={{ nextPath }}>
+  const form = document.getElementById("admin-login-form");
+  const errorBox = document.getElementById("login-error");
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!form || !errorBox) return;
+
+    errorBox.classList.add("hidden");
+    const formData = new FormData(form);
+    const password = String(formData.get("password") ?? "");
+
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+
+      if (response.ok) {
+        window.location.assign(nextPath);
+        return;
+      }
+
+      errorBox.textContent = "Invalid password. Please try again.";
+      errorBox.classList.remove("hidden");
+    } catch {
+      errorBox.textContent = "Unable to login right now. Please try again.";
+      errorBox.classList.remove("hidden");
+    }
+  });
+</script>

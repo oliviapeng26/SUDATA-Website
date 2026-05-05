@@ -3,13 +3,6 @@ export const prerender = false;
 
 import prisma from '../lib/prisma';
 
-const secret = process.env.ANALYTICS_SECRET;
-const key = Astro.url.searchParams.get('key');
-
-if (!secret || key !== secret) {
-  return new Response('Unauthorized', { status: 403 });
-}
-
 const days = parseInt(Astro.url.searchParams.get('days') || '30');
 const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 const prevSince = new Date(since.getTime() - days * 24 * 60 * 60 * 1000);
@@ -410,7 +403,7 @@ const chartPayload = {
       </div>
       <nav class="range-tabs">
         {[7, 30, 90].map(d => (
-          <a href={`?key=${key}&days=${d}&tz=${encodeURIComponent(validTz)}`} class={`range-tab${days === d ? ' active' : ''}`}>{d}d</a>
+          <a href={`?days=${d}&tz=${encodeURIComponent(validTz)}`} class={`range-tab${days === d ? ' active' : ''}`}>{d}d</a>
         ))}
       </nav>
     </div>
