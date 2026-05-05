@@ -1,0 +1,74 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout title="Admin | SUDATA">
+  <main class="min-h-screen bg-[#020617] pt-20 pb-20 px-4 sm:px-6">
+    <div class="max-w-4xl mx-auto space-y-10">
+      <header class="text-center space-y-4">
+        <h1 class="text-4xl sm:text-6xl font-bold text-[#00F0FF] tracking-widest font-mono uppercase" style="text-shadow: 0 0 15px #00F0FF;">
+          Admin
+        </h1>
+        <p class="text-[#00F0FF]/80 text-sm sm:text-base font-mono">
+          Select an admin tool.
+        </p>
+      </header>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <a href="/admin/events" class="admin-card">
+          <h2 class="admin-card-title">Edit Events</h2>
+          <p class="admin-card-sub">Manage and publish event details in the catalog.</p>
+        </a>
+        <a href="/admin/analytics" class="admin-card">
+          <h2 class="admin-card-title">Analytics</h2>
+          <p class="admin-card-sub">Review traffic, click-through rates, and engagement metrics.</p>
+        </a>
+      </div>
+
+      <div class="flex justify-center pt-2">
+        <button
+          id="admin-logout-btn"
+          class="px-5 py-2 border border-red-400/50 text-red-300 text-xs font-mono tracking-[0.18em] uppercase hover:bg-red-500 hover:text-white transition-all"
+        >
+          Admin Logout
+        </button>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .admin-card {
+    border: 1px solid rgba(0, 240, 255, 0.25);
+    background: rgba(15, 23, 42, 0.55);
+    padding: 1.5rem;
+    transition: all 0.25s ease;
+  }
+  .admin-card:hover {
+    border-color: rgba(0, 240, 255, 0.65);
+    box-shadow: 0 0 26px rgba(0, 240, 255, 0.2);
+    transform: translateY(-2px);
+  }
+  .admin-card-title {
+    color: #00f0ff;
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 1rem;
+  }
+  .admin-card-sub {
+    color: rgba(148, 163, 184, 0.95);
+    font-family: "JetBrains Mono", monospace;
+    margin-top: 0.65rem;
+    font-size: 0.8rem;
+    line-height: 1.55;
+  }
+</style>
+
+<script is:inline>
+  document.getElementById("admin-logout-btn")?.addEventListener("click", async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
+    window.location.assign("/admin/login");
+  });
+</script>

@@ -7,9 +7,7 @@
       "venue": "International Student Lounge",
       "type": "social",
       "description": "O-Week social event to meet new members and make connections in a fun, relaxed environment.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "None",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -22,9 +20,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Learn the fundamentals of R programming for data analysis and statistical computing.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "TBA",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -37,9 +33,7 @@
       "venue": "TBA",
       "type": "social",
       "description": "Kick off the semester with drinks and socializing. A great way to meet the SUDATA community!",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -52,11 +46,7 @@
       "venue": "TBA",
       "type": "industry",
       "description": "Industry talk from Jane Street about quantitative trading and careers in finance.",
-      "collaborators": [
-        "SUDATA",
-        "SUWIE",
-        "Jane Street"
-      ],
+      "collaborators": ["SUDATA", "SUWIE", "Jane Street"],
       "catering": "TBA",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -69,9 +59,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Learn about data science fundamentals and hear from industry professionals about career paths.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "TBA",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -84,10 +72,7 @@
       "venue": "TBA",
       "type": "industry",
       "description": "Casual networking session with Commonwealth Bank representatives. Bring your questions!",
-      "collaborators": [
-        "SUDATA",
-        "Commonwealth Bank"
-      ],
+      "collaborators": ["SUDATA", "Commonwealth Bank"],
       "catering": "Coffee and snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -100,10 +85,7 @@
       "venue": "TBA",
       "type": "social",
       "description": "Creative social event in collaboration with Craftsoc. Arts, crafts, and socializing!",
-      "collaborators": [
-        "SUDATA",
-        "Craftsoc"
-      ],
+      "collaborators": ["SUDATA", "Craftsoc"],
       "catering": "Drinks and snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -116,9 +98,7 @@
       "venue": "TBA",
       "type": "social",
       "description": "Weekend camp for SUDATA members - bonding, activities, and fun away from campus!",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "All meals provided",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -131,10 +111,7 @@
       "venue": "Quantium Office",
       "type": "industry",
       "description": "Visit Quantium's office for networking and insights into data science in retail analytics.",
-      "collaborators": [
-        "SUDATA",
-        "Quantium"
-      ],
+      "collaborators": ["SUDATA", "Quantium"],
       "catering": "Morning tea",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -147,10 +124,7 @@
       "venue": "TBA",
       "type": "social",
       "description": "Learn and play mahjong with the Mahjong Society. All skill levels welcome!",
-      "collaborators": [
-        "SUDATA",
-        "Mahjong Society"
-      ],
+      "collaborators": ["SUDATA", "Mahjong Society"],
       "catering": "Snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -163,10 +137,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Hands-on workshop covering artificial intelligence and machine learning applications.",
-      "collaborators": [
-        "SUDATA",
-        "Rhombus AI"
-      ],
+      "collaborators": ["SUDATA", "Rhombus AI"],
       "catering": "Pizza and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -179,10 +150,7 @@
       "venue": "TBA",
       "type": "industry",
       "description": "Networking session with Business Information Systems Association members.",
-      "collaborators": [
-        "SUDATA",
-        "BISA"
-      ],
+      "collaborators": ["SUDATA", "BISA"],
       "catering": "Coffee",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -195,10 +163,7 @@
       "venue": "TBA",
       "type": "industry",
       "description": "Connect with 180 Degrees Consulting members over coffee.",
-      "collaborators": [
-        "SUDATA",
-        "180 Degrees Consulting"
-      ],
+      "collaborators": ["SUDATA", "180 Degrees Consulting"],
       "catering": "Coffee",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -211,10 +176,7 @@
       "venue": "TBA",
       "type": "industry",
       "description": "Finance accelerator program session with AmplifyMe focusing on career development.",
-      "collaborators": [
-        "SUDATA",
-        "AmplifyMe"
-      ],
+      "collaborators": ["SUDATA", "AmplifyMe"],
       "catering": "TBA",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -227,9 +189,7 @@
       "venue": "TBA",
       "type": "social",
       "description": "Internal SUDATA team event for members and subcommittee.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "TBA",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -242,9 +202,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Academic skills workshop covering data science techniques and best practices.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Pizza",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -257,10 +215,7 @@
       "venue": "Multiple venues",
       "type": "social",
       "description": "Joint pub crawl with Sydney Medical Society. A night of drinks and socializing!",
-      "collaborators": [
-        "SUDATA",
-        "Sydney Medical Society"
-      ],
+      "collaborators": ["SUDATA", "Sydney Medical Society"],
       "catering": "Drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -273,9 +228,7 @@
       "venue": "TBA",
       "type": "industry",
       "description": "Major networking event with industry professionals from various data science companies.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Canapés and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -288,9 +241,7 @@
       "venue": "TBA",
       "type": "social",
       "description": "Half social, half academic trivia night. Test your knowledge and have fun!",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Pizza and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -303,9 +254,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Comprehensive revision session for DATA1002 exam preparation during STUVAC.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -318,11 +267,7 @@
       "venue": "Sydney Harbour",
       "type": "social",
       "description": "End of semester cruise celebration on Sydney Harbour!",
-      "collaborators": [
-        "SUDATA",
-        "SYNCS",
-        "SUMS"
-      ],
+      "collaborators": ["SUDATA", "SYNCS", "SUMS"],
       "catering": "Included",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -335,10 +280,7 @@
       "venue": "TBA",
       "type": "industry",
       "description": "Coffee chat with Westpac to learn about their 2026 graduate programs.",
-      "collaborators": [
-        "SUDATA",
-        "Westpac"
-      ],
+      "collaborators": ["SUDATA", "Westpac"],
       "catering": "Coffee and snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -351,9 +293,7 @@
       "venue": "Multiple venues",
       "type": "social",
       "description": "Semester 2 welcome pub crawl to kick off the semester with drinks and socializing!",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -366,10 +306,7 @@
       "venue": "TBA",
       "type": "industry",
       "description": "Poker night sponsored by Quantium. Learn poker strategy and network with professionals.",
-      "collaborators": [
-        "SUDATA",
-        "Quantium"
-      ],
+      "collaborators": ["SUDATA", "Quantium"],
       "catering": "Snacks and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -382,9 +319,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Introductory workshop for students new to data science. Perfect for beginners!",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Pizza",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -397,9 +332,7 @@
       "venue": "BHB Seminar Room 2130 (ABS)",
       "type": "social",
       "description": "Semester 2 speed friending event to meet new members and expand your network.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -412,10 +345,7 @@
       "venue": "Commonwealth Bank Office",
       "type": "industry",
       "description": "Visit CBA's office for networking and insights into banking data science roles.",
-      "collaborators": [
-        "SUDATA",
-        "Commonwealth Bank"
-      ],
+      "collaborators": ["SUDATA", "Commonwealth Bank"],
       "catering": "Refreshments",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -428,10 +358,7 @@
       "venue": "TBA",
       "type": "social",
       "description": "Collaborative movie night with Wasabi society. Popcorn and entertainment!",
-      "collaborators": [
-        "SUDATA",
-        "Wasabi"
-      ],
+      "collaborators": ["SUDATA", "Wasabi"],
       "catering": "Popcorn and snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -444,11 +371,7 @@
       "venue": "TBA",
       "type": "industry",
       "description": "Coffee session with tech giants Microsoft and Meta to learn about opportunities.",
-      "collaborators": [
-        "SUDATA",
-        "Microsoft",
-        "Meta"
-      ],
+      "collaborators": ["SUDATA", "Microsoft", "Meta"],
       "catering": "Coffee",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -461,9 +384,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Kick-off event for SUDATA's mentoring program. Meet your mentors and mentees!",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Light refreshments",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -476,9 +397,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Deep dive into machine learning algorithms and practical applications.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Pizza and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -491,9 +410,7 @@
       "venue": "TBA",
       "type": "social",
       "description": "Casual sports afternoon for SUDATA members. All skill levels welcome!",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Snacks and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -506,10 +423,7 @@
       "venue": "TBA",
       "type": "industry",
       "description": "Networking session with Sydney University Business Analytics Association.",
-      "collaborators": [
-        "SUDATA",
-        "SUBAA"
-      ],
+      "collaborators": ["SUDATA", "SUBAA"],
       "catering": "Coffee",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -522,9 +436,7 @@
       "venue": "TBA",
       "type": "industry",
       "description": "Panel discussion with startup founders about data science in entrepreneurship.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Light refreshments",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -537,9 +449,7 @@
       "venue": "TBA",
       "type": "industry",
       "description": "Hear from students who completed data science internships about their experiences.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -552,9 +462,7 @@
       "venue": "The Square",
       "type": "social",
       "description": "Mentoring program social sports event playing ultimate frisbee!",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "None",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -587,10 +495,7 @@
       "venue": "Victoria Park",
       "type": "social",
       "description": "Join SUEDE and SUDATA for a laid-back BBQ Picnic at Victoria Park! A perfect chance to unwind, eat good food, and meet new friends across both communities.",
-      "collaborators": [
-        "SUDATA",
-        "SUEDE"
-      ],
+      "collaborators": ["SUDATA", "SUEDE"],
       "catering": "BBQ",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -603,9 +508,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Study session to help students prepare for DATA1002 assessments.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -618,10 +521,7 @@
       "venue": "TBA",
       "type": "social",
       "description": "Another fun mahjong session with the Mahjong Society!",
-      "collaborators": [
-        "SUDATA",
-        "Mahjong Society"
-      ],
+      "collaborators": ["SUDATA", "Mahjong Society"],
       "catering": "Snacks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -634,10 +534,7 @@
       "venue": "TBA",
       "type": "social",
       "description": "Joint trivia night with Economics Society. Test your knowledge across various topics!",
-      "collaborators": [
-        "SUDATA",
-        "Economics Society"
-      ],
+      "collaborators": ["SUDATA", "Economics Society"],
       "catering": "Pizza and drinks",
       "signupLink": "https://forms.google.com/example",
       "attendees": 0,
@@ -650,11 +547,7 @@
       "venue": "L’Aqua, Terrace Room",
       "type": "social",
       "description": "Join UNSW MATHSOC, SUMS and SUDATA for an unforgettable night, including a 3-course meal, UNLIMITED drinks and DJ!",
-      "collaborators": [
-        "SUDATA",
-        "SUMS",
-        "UNSW MATHSOC"
-      ],
+      "collaborators": ["SUDATA", "SUMS", "UNSW MATHSOC"],
       "catering": "Three-course dinner",
       "signupLink": "https://events.humanitix.com/mathsoc-x-sums-x-sudata-presents-among-the-stars-annual-ball",
       "attendees": 0,
@@ -667,9 +560,7 @@
       "venue": "BHB Lecture Theatre 1130",
       "type": "academic",
       "description": "Join us for the SUDATA 2025 Annual General Meeting as we wrap up an incredible year, share what we’ve accomplished, and elect the 2026 Executive Team that’ll lead SUDATA into the next chapter.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "None",
       "signupLink": "https://link.sudata.org/agm2025nominations",
       "attendees": 0,
@@ -682,10 +573,7 @@
       "venue": "Law Annex Lecture Theatre 026",
       "type": "academic",
       "description": "Join us for the 2025 Mentoring Program Presentation Night, where our mentees showcase their hard work, findings, and creative data-driven solutions developed under the guidance of mentors from the Sydney Precision Data Science Centre (SPDSC).",
-      "collaborators": [
-        "SUDATA",
-        "SPDSC"
-      ],
+      "collaborators": ["SUDATA", "SPDSC"],
       "catering": "Light refreshments",
       "signupLink": "https://forms.gle/Qv22MTefFCbkDoif7",
       "attendees": 0,
@@ -698,10 +586,7 @@
       "venue": "Jane Foss Russell Building L2",
       "type": "industry",
       "description": "Come grab a coffee, meet the Notion team, and chat all things productivity, uni life, and how to make your workspace aesthetic and efficient.",
-      "collaborators": [
-        "SUDATA",
-        "Notion"
-      ],
+      "collaborators": ["SUDATA", "Notion"],
       "catering": "Coffee",
       "signupLink": "https://campusleaders.notion.site/28bd5368c6db80cd8383f4b8ae1cf880",
       "attendees": 0,
@@ -714,10 +599,7 @@
       "venue": "Sanctuary Hotel and Shark Hotel",
       "type": "social",
       "description": "Join SUDATA & TechSoc for a spooktacular bar crawl filled with creepy cocktails, new friends, and plenty of Halloween magic.",
-      "collaborators": [
-        "SUDATA",
-        "UTS TechSoc"
-      ],
+      "collaborators": ["SUDATA", "UTS TechSoc"],
       "catering": "Drinks",
       "signupLink": "https://events.humanitix.com/usyd-sudata-x-uts-techsoc-halloween-pub-crawl",
       "attendees": 0,
@@ -730,9 +612,7 @@
       "venue": "Carslaw Lecture Theatres 157-257 and 159-259",
       "type": "academic",
       "description": "STUVAC revision session for DATA1002 and DATA2002 final exam preparation.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Lunch and Snacks",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLSdOQ6QU7fPNe9oa4mItcof9UH8VsgHTjxPJp3uWLmr9d9mv5w/viewform",
       "attendees": 0,
@@ -745,9 +625,7 @@
       "venue": "Carslaw Seminar Room 350",
       "type": "social",
       "description": "Meet new people and make friends through quick activities and games",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Snacks and drinks",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLSeduhevat2fDYJJUjY6mECZbH3QXoC_0hNrDCHVqyYdwnAiqg/viewform?usp=dialog",
       "attendees": 0,
@@ -760,10 +638,7 @@
       "venue": "Courtyard Cafe, USU",
       "type": "social",
       "description": "Casual drinks and networking with new or existing members from SUDATA and SUBAA",
-      "collaborators": [
-        "SUDATA",
-        "SUBAA"
-      ],
+      "collaborators": ["SUDATA", "SUBAA"],
       "catering": "One free Drink provided",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLScKZVKDVWMbtH2mYJpaJJOdHb3vRpJby2CYVKwQ4UcD3wUGBg/viewform",
       "attendees": 0,
@@ -776,11 +651,7 @@
       "venue": "Wentworth Building Timber floors (International Student Lounge)",
       "type": "social",
       "description": "Crash course in poker ahead of our poker tournament",
-      "collaborators": [
-        "SUDATA",
-        "SQT",
-        "Susquehanna"
-      ],
+      "collaborators": ["SUDATA", "SQT", "Susquehanna"],
       "catering": "TBA",
       "signupLink": "https://forms.gle/PMUkorsxWhRaeZdq7",
       "attendees": 0,
@@ -793,10 +664,7 @@
       "venue": "Ralph’s Cafe on the Boardwalk",
       "type": "social",
       "description": "Coffee catch up with students from SUDATA and CommStem offering a chance to connect, network and share career insights",
-      "collaborators": [
-        "SUDATA",
-        "CommSTEM"
-      ],
+      "collaborators": ["SUDATA", "CommSTEM"],
       "catering": "Coffee availble for purchase on a society tab",
       "signupLink": "TBA",
       "attendees": 0,
@@ -809,9 +677,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Learn the fundamentals of R programming for data analysis, and connect with new friends in a relaxed, supportive environment",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Snacks",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLScgW3fZhxdtB65OgVPNcWrCGxCODn6fjWnh4lLI3cafpXfg_A/viewform",
       "attendees": 0,
@@ -824,10 +690,7 @@
       "venue": "TBA University of Sydney",
       "type": "academic",
       "description": "Jane Street is hosting a dinner in Sydney! University of Sydney students of all backgrounds and tenures are encouraged to attend. We hope to meet intellectually curious problem solvers - you don't need experience in finance to work at Jane Street.",
-      "collaborators": [
-        "SUDATA",
-        "Jane Street"
-      ],
+      "collaborators": ["SUDATA", "Jane Street"],
       "catering": "Dinner",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLSf46ZiUBv2E_YBmU0tA3ywnUhGT7KrWh1ifW98jJ2F-iPxs4g/viewform",
       "attendees": 0,
@@ -840,10 +703,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Join a JS technologist to learn more about “Making OCaml Safe for Performance Engineering.",
-      "collaborators": [
-        "SUDATA",
-        "Jane Street"
-      ],
+      "collaborators": ["SUDATA", "Jane Street"],
       "catering": "TBA",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLSe0fgyAoK7WviXjjQG5-B0WpO6OdeasQA5FbJU1cbfgnZAceQ/viewform",
       "attendees": 0,
@@ -856,11 +716,7 @@
       "venue": "BHB Seminar Room 3200",
       "type": "social",
       "description": "A social night out hopping between venues with SUDATA, SUMS and Econsoc members to unwind and meet new people",
-      "collaborators": [
-        "SUDATA",
-        "SUMS",
-        "Econsoc"
-      ],
+      "collaborators": ["SUDATA", "SUMS", "Econsoc"],
       "catering": "Food provided at the Trivia",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLScqpPcQ59sVttaKaBFjwePnOLHKFWUo0syGt0UPCwH8KmnG5A/viewform?usp=dialog",
       "attendees": 0,
@@ -873,12 +729,7 @@
       "venue": "PNR Lecture Theatre",
       "type": "academic",
       "description": "Panel discussion with startup founders about data science in entrepreneurship.",
-      "collaborators": [
-        "SUDATA",
-        "SUSMI",
-        "STARTUPLINK",
-        "MEDSCISOC"
-      ],
+      "collaborators": ["SUDATA", "SUSMI", "STARTUPLINK", "MEDSCISOC"],
       "catering": "TBA",
       "signupLink": "https://events.humanitix.com/meet-the-startups-susmi-x-sudata-x-sul-x-medscisoc",
       "attendees": 0,
@@ -891,12 +742,7 @@
       "venue": "Great Aussie Bush Camp Lake Macquarie (Morisset)",
       "type": "social",
       "description": "A weekend camp with games, challenges, team activities and social bonding with multiple societies with the theme of Total Drama Island",
-      "collaborators": [
-        "SUDATA",
-        "SUMS",
-        "BIOSOC",
-        "BISA"
-      ],
+      "collaborators": ["SUDATA", "SUMS", "BIOSOC", "BISA"],
       "catering": "Meals provided",
       "signupLink": "https://events.humanitix.com/sudata-x-sums-x-biosoc-x-bisa-camp-2026?fbclid=IwY2xjawQPexdleHRuA2FlbQIxMQBzcnRjBmFwcF9pZAEwAAEeKIdw7O0NIVHgrUBA4rsJpch8avlWCWYw99hV2MRQQhl3VFoFGBe3HjmW1bk_aem_4Qh6p4uxUHZAc60DdXkfHg",
       "attendees": 0,
@@ -909,10 +755,7 @@
       "venue": "TBD",
       "type": "academic",
       "description": "Form a team to tackle real-world datasets to build innovative solutions to complex business problems. Extract insights, develop models, and get the opportunity to pitch your ideas in front of industry & faculty judges.",
-      "collaborators": [
-        "SUDATA",
-        "Comm-STEM"
-      ],
+      "collaborators": ["SUDATA", "Comm-STEM"],
       "catering": "Food provided throughout event",
       "signupLink": "https://docs.google.com/forms/d/e/1FAIpQLSc0PpmEPPKaErDartdzL0OhFWrcmmq79hsq49oZ7CR2hDUi9A/viewform?fbclid=PAVERFWAQ9to9leHRuA2FlbQIxMABzcnRjBmFwcF9pZA8xMjQwMjQ1NzQyODc0MTQAAadqwtgGT7mqVE0qgxyPpec07vi01Z8i_ckhJkuwZor_kkiucx7tcICnCg-DEA_aem_-v1T0RahWKiznkVs0U-yVA&pli=1",
       "attendees": 0,
@@ -925,10 +768,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Consulting workshop and short case competition practice in collaboration with Amstelveen",
-      "collaborators": [
-        "SUDATA",
-        "BISA"
-      ],
+      "collaborators": ["SUDATA", "BISA"],
       "catering": "TBA",
       "signupLink": "TBA",
       "attendees": 0,
@@ -941,10 +781,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Learn about data science fundamentals and hear from industry professionals about career paths.",
-      "collaborators": [
-        "SUDATA",
-        "180 Degrees"
-      ],
+      "collaborators": ["SUDATA", "180 Degrees"],
       "catering": "TBA",
       "signupLink": "TBA",
       "attendees": 0,
@@ -957,9 +794,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "Major networking event with industry professionals from various data science companies.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Canapés and drinks",
       "signupLink": "TBA",
       "attendees": 0,
@@ -972,9 +807,7 @@
       "venue": "TBA",
       "type": "academic",
       "description": "STUVAC revision session for DATA1001 and DATA2001 final exam preparation.",
-      "collaborators": [
-        "SUDATA"
-      ],
+      "collaborators": ["SUDATA"],
       "catering": "Lunch and Snacks",
       "signupLink": "TBA",
       "attendees": 0,
