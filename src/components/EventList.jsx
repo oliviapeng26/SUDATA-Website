@@ -33,53 +33,134 @@ export default function EventList({ events, onDelete, onEdit }) {
     social: events.filter(e => e.type === 'social')
   };
 
+  const [activeType, setActiveType] = useState('academic');
+  const mobileEvents = activeType === 'academic' ? eventsByType.academic : eventsByType.social;
+
   // 3. Render the grid with columns
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-sm">
-      {/* Academic Column */}
-      <div className="space-y-4">
-        <div className="text-[#00F0FF] font-bold text-lg tracking-widest uppercase border-b border-[#00F0FF]/30 pb-3">
-          ACADEMIC
-        </div>
-        <div className="space-y-3">
-          {eventsByType.academic.length > 0 ? (
-            eventsByType.academic.map((event) => (
-              <EventCard 
-                key={event.id} 
-                event={event} 
-                onEdit={onEdit} 
-                onDelete={onDelete}
-                typeColor="#00F0FF"
-              />
-            ))
-          ) : (
-            <div className="text-[#94a3b8] text-xs italic">No academic events</div>
-          )}
+    <>
+      {/* Mobile: academic/social switcher to avoid deep scrolling */}
+      <div className="md:hidden mb-4">
+        <div className="flex gap-2 font-mono text-xs uppercase tracking-[0.12em]">
+          <button
+            type="button"
+            onClick={() => setActiveType('academic')}
+            className={`flex-1 px-3 py-2 border transition-all rounded-full ${
+              activeType === 'academic'
+                ? 'border-[#00F0FF]/50 text-[#00F0FF] bg-[#00F0FF]/10'
+                : 'border-white/10 text-[#94a3b8] hover:border-[#00F0FF]/30 hover:text-white'
+            }`}
+          >
+            Academic
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveType('social')}
+            className={`flex-1 px-3 py-2 border transition-all rounded-full ${
+              activeType === 'social'
+                ? 'border-[#FAD85D]/50 text-[#FAD85D] bg-[#FAD85D]/10'
+                : 'border-white/10 text-[#94a3b8] hover:border-[#FAD85D]/30 hover:text-white'
+            }`}
+          >
+            Social
+          </button>
         </div>
       </div>
 
-      {/* Social Column */}
-      <div className="space-y-4">
-        <div className="text-[#FAD85D] font-bold text-lg tracking-widest uppercase border-b border-[#FAD85D]/30 pb-3">
-          SOCIAL
+      {/* Mobile: single-column section */}
+      <div className="md:hidden font-mono text-sm space-y-4">
+        {activeType === 'academic' ? (
+          <div>
+            <div className="text-[#00F0FF] font-bold text-lg tracking-widest uppercase border-b border-[#00F0FF]/30 pb-3">
+              ACADEMIC
+            </div>
+            <div className="space-y-3 pt-1">
+              {mobileEvents.length > 0 ? (
+                mobileEvents.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    typeColor="#00F0FF"
+                  />
+                ))
+              ) : (
+                <div className="text-[#94a3b8] text-xs italic">No academic events</div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div className="text-[#FAD85D] font-bold text-lg tracking-widest uppercase border-b border-[#FAD85D]/30 pb-3">
+              SOCIAL
+            </div>
+            <div className="space-y-3 pt-1">
+              {mobileEvents.length > 0 ? (
+                mobileEvents.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    typeColor="#FAD85D"
+                  />
+                ))
+              ) : (
+                <div className="text-[#94a3b8] text-xs italic">No social events</div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: keep side-by-side columns */}
+      <div className="hidden md:grid grid-cols-2 gap-6 font-mono text-sm">
+        {/* Academic Column */}
+        <div className="space-y-4">
+          <div className="text-[#00F0FF] font-bold text-lg tracking-widest uppercase border-b border-[#00F0FF]/30 pb-3">
+            ACADEMIC
+          </div>
+          <div className="space-y-3">
+            {eventsByType.academic.length > 0 ? (
+              eventsByType.academic.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  typeColor="#00F0FF"
+                />
+              ))
+            ) : (
+              <div className="text-[#94a3b8] text-xs italic">No academic events</div>
+            )}
+          </div>
         </div>
-        <div className="space-y-3">
-          {eventsByType.social.length > 0 ? (
-            eventsByType.social.map((event) => (
-              <EventCard 
-                key={event.id} 
-                event={event} 
-                onEdit={onEdit} 
-                onDelete={onDelete}
-                typeColor="#FAD85D"
-              />
-            ))
-          ) : (
-            <div className="text-[#94a3b8] text-xs italic">No social events</div>
-          )}
+
+        {/* Social Column */}
+        <div className="space-y-4">
+          <div className="text-[#FAD85D] font-bold text-lg tracking-widest uppercase border-b border-[#FAD85D]/30 pb-3">
+            SOCIAL
+          </div>
+          <div className="space-y-3">
+            {eventsByType.social.length > 0 ? (
+              eventsByType.social.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  typeColor="#FAD85D"
+                />
+              ))
+            ) : (
+              <div className="text-[#94a3b8] text-xs italic">No social events</div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
