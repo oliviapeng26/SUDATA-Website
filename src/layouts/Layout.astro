@@ -91,6 +91,10 @@ const isHomePage = Astro.url.pathname === '/';
 				-webkit-tap-highlight-color: transparent;
 				outline: none;
 			}
+			/* Ensure mobile nav display rules cannot reveal hidden admin tab */
+			#admin-nav-link.hidden {
+				display: none !important;
+			}
 
 			@media (max-width: 639px) {
 				#main-nav.nav-mobile-expanded {

@@ -94,14 +94,14 @@ export default function EventManager() {
   return (
     <div className="relative">
       {/* Header with Add Button */}
-      <div className="flex justify-end mb-8">
+      <div className="flex justify-center md:justify-end mt-2 mb-5 md:mt-0 md:mb-8">
         <button
           onClick={() => {
             setEditingEvent(null);
             setEditFormData(false);
             setIsModalOpen(true);
           }}
-          className="px-6 py-2 border border-[#00F0FF] text-[#00F0FF] font-mono text-xs hover:bg-[#00F0FF] hover:text-[#020617] transition-all"
+          className="w-full md:w-auto px-6 py-2 border border-[#00F0FF] text-[#00F0FF] font-mono text-xs hover:bg-[#00F0FF] hover:text-[#020617] transition-all"
         >
           + NEW EVENT
         </button>
