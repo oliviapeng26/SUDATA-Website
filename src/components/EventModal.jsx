@@ -34,7 +34,31 @@ const EventModal = ({ event, onClose }) => {
   const typeColor = typeColors[event.type];
 
   const [calMenuOpen, setCalMenuOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const menuRef = useRef(null);
+
+  useEffect(() => {
+    const label = `event-detail:${(event.title || 'unknown').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
+    const getCookie = (name) => {
+      const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+      return m ? m[1] : null;
+    };
+    const consent = localStorage.getItem('_sudata_consent');
+    const sessionId = consent === 'accepted' ? getCookie('_vid') : sessionStorage.getItem('_sid');
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'click', label, url: window.location.href, page: window.location.pathname, referrer: document.referrer || null, sessionId }),
+    }).catch(() => {});
+  }, []);
+
+  const handleShare = () => {
+    const url = `${window.location.origin}/events?event=${event.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   // close calendar menu when clicking outside
   useEffect(() => {
@@ -189,17 +213,27 @@ const EventModal = ({ event, onClose }) => {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button (X) - Only this one remains */}
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 sm:top-4 sm:right-4 p-2 rounded-lg bg-[#00F0FF]/10 border border-[#00F0FF]/30 text-[#00F0FF] 
-                   hover:bg-[#00F0FF]/20 active:bg-[#00F0FF]/30 hover:scale-110 active:scale-95 transition-all duration-300 touch-manipulation"
-          aria-label="Close modal"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="sm:w-6 sm:h-6" style={{ imageRendering: 'pixelated' }}>
-            <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" />
-          </svg>
-        </button>
+        {/* Top-right button group: Share + Close */}
+        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex gap-2">
+          <button
+            onClick={handleShare}
+            className="px-3 py-2 rounded-lg bg-[#00F0FF]/10 border border-[#00F0FF]/30 text-[#00F0FF] text-xs font-bold font-mono
+                     hover:bg-[#00F0FF]/20 active:bg-[#00F0FF]/30 hover:scale-110 active:scale-95 transition-all duration-300 touch-manipulation whitespace-nowrap"
+            aria-label="Copy link to event"
+          >
+            {copied ? 'Link copied' : 'Share'}
+          </button>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg bg-[#00F0FF]/10 border border-[#00F0FF]/30 text-[#00F0FF]
+                     hover:bg-[#00F0FF]/20 active:bg-[#00F0FF]/30 hover:scale-110 active:scale-95 transition-all duration-300 touch-manipulation"
+            aria-label="Close modal"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="sm:w-6 sm:h-6" style={{ imageRendering: 'pixelated' }}>
+              <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" />
+            </svg>
+          </button>
+        </div>
 
         {/* Event Type Badge - NO attendee count */}
         <div className="flex items-center gap-3 mb-4 sm:mb-6">

@@ -21,6 +21,7 @@ if (referer) {
 }
 
 const eventsData = JSON.parse(JSON.stringify(await getFormattedEvents()));
+const initialEventId = Astro.url.searchParams.get('event') ?? '';
 ---
 
 
@@ -95,7 +96,7 @@ const eventsData = JSON.parse(JSON.stringify(await getFormattedEvents()));
 
     <!-- Calendar Component -->
     <div class="max-w-7xl mx-auto">
-      <EventCalendar events={eventsData} client:load />
+      <EventCalendar events={eventsData} initialEventId={initialEventId} client:load />
     </div>
 
   </div>

@@ -3,7 +3,7 @@ import EventModal from './EventModal';
 import { getSemesterInfo } from '../data/semesterDates';
 import { getHolidayName } from '../data/publicHolidays';
 
-const EventCalendar = ({ events }) => {
+const EventCalendar = ({ events, initialEventId = '' }) => {
   const revealClassName = 'reveal-on-scroll opacity-0 translate-y-[40px] transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]';
   const currentYear = new Date().getFullYear();
   // Keep null during SSR/SSG so the static HTML has no "today" circle,
@@ -17,6 +17,16 @@ const EventCalendar = ({ events }) => {
     setTodayDay(now.getDate());
     setTodayMonth(now.getMonth());
     setTodayYear(now.getFullYear());
+  }, []);
+
+  useEffect(() => {
+    if (!initialEventId) return;
+    const evt = events.find(e => String(e.id) === String(initialEventId));
+    if (!evt) return;
+    const [yearStr, monthStr] = evt.date.split('-');
+    setSelectedYear(parseInt(yearStr));
+    setSelectedMonth(parseInt(monthStr) - 1);
+    setSelectedEvent(evt);
   }, []);
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // 0 = January
@@ -371,7 +381,6 @@ const EventCalendar = ({ events }) => {
                                 <button
                                   key={event.id}
                                   onClick={() => setSelectedEvent(event)}
-                                  data-track={`event-detail:${(event.title || 'unknown').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
                                   className={`w-full text-left px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold line-clamp-3 transition-colors touch-manipulation`}
                                   style={{
                                     backgroundColor: eventConfig.color,

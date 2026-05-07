@@ -441,6 +441,8 @@ const isHomePage = Astro.url.pathname === '/';
 					});
 				}
 
+				(window as any).__sudataTrack = send;
+
 				// Pageview on load
 				send({ type: 'pageview' });
 
