@@ -5,6 +5,7 @@ import EventCalendar from '../components/EventCalendar.jsx';
 import UpcomingEvents from '../components/UpcomingEvents.jsx';
 import { getFormattedEvents } from '../services/eventService';
 import { isAdminRequest } from '../lib/adminAuth';
+import CalendarSubscribe from '../components/CalendarSubscribe';
 
 const pageTitle = 'Events | SUDATA';
 const isAdmin = isAdminRequest(Astro.cookies);
@@ -39,6 +40,11 @@ const initialEventId = Astro.url.searchParams.get('event') ?? '';
         <p class="text-[#94a3b8] font-mono-tech text-base sm:text-lg tracking-wide mb-4 sm:mb-6">
           [ Temporal Data Stream ]
         </p>
+
+        <!-- Calendar subscription button -->
+        <div class="flex justify-center mb-6">
+          <CalendarSubscribe client:load />
+        </div>
 
         {isAdmin && isComingFromAdmin && (
           <div class="flex justify-center mb-8 reveal-on-scroll">
