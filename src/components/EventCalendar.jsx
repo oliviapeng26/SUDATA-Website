@@ -380,7 +380,7 @@ const EventCalendar = ({ events, initialEventId = '' }) => {
                               return (
                                 <button
                                   key={event.id}
-                                  onClick={() => setSelectedEvent(event)}
+                                  onClick={() => { window.history.replaceState(null, '', `/events?event=${event.id}`); setSelectedEvent(event); }}
                                   className={`w-full text-left px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold line-clamp-3 transition-colors touch-manipulation`}
                                   style={{
                                     backgroundColor: eventConfig.color,
@@ -407,7 +407,7 @@ const EventCalendar = ({ events, initialEventId = '' }) => {
 
       {/* Event Modal */}
       {selectedEvent && (
-        <EventModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+        <EventModal event={selectedEvent} onClose={() => { window.history.replaceState(null, '', '/events'); setSelectedEvent(null); }} />
       )}
     </div>
   );
