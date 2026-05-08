@@ -47,7 +47,7 @@ export const GET: APIRoute = async () => {
       "X-WR-CALNAME:SUDATA Events",
       "X-WR-CALDESC:Events from the Sydney University Data Society",
       "X-WR-TIMEZONE:Australia/Sydney",
-      "X-PUBLISHED-TTL:PT2H",
+      "X-PUBLISHED-TTL:PT0S",
     ];
 
     for (const event of events) {
@@ -84,7 +84,7 @@ export const GET: APIRoute = async () => {
       status: 200,
       headers: {
         "Content-Type": "text/calendar; charset=utf-8",
-        "Cache-Control": "public, max-age=7200, s-maxage=7200",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
         "Content-Disposition": 'inline; filename="sudata-events.ics"',
       },
     });
