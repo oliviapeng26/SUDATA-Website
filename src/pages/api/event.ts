@@ -1,6 +1,76 @@
 import type { APIRoute } from "astro";
 import prisma from "../../lib/prisma";
 
+const EVENT_TIME_ZONE = "Australia/Sydney";
+
+function parseDateInput(dateInput: string) {
+  const match = String(dateInput).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) {
+    throw new Error("Invalid event date");
+  }
+
+  const [, year, month, day] = match;
+  return {
+    year: Number(year),
+    month: Number(month),
+    day: Number(day),
+  };
+}
+
+function parseTimeInput(timeInput: string) {
+  const match = String(timeInput).match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) {
+    throw new Error("Invalid event time");
+  }
+
+  const [, hour, minute] = match;
+  return {
+    hour: Number(hour),
+    minute: Number(minute),
+  };
+}
+
+function getTimeZoneOffsetMs(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-AU", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+
+  const partMap = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  const asUtc = Date.UTC(
+    Number(partMap.year),
+    Number(partMap.month) - 1,
+    Number(partMap.day),
+    Number(partMap.hour),
+    Number(partMap.minute),
+    Number(partMap.second),
+  );
+
+  return asUtc - date.getTime();
+}
+
+function createDateOnly(dateInput: string) {
+  const { year, month, day } = parseDateInput(dateInput);
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+function createSydneyDateTime(dateInput: string, timeInput: string) {
+  const { year, month, day } = parseDateInput(dateInput);
+  const { hour, minute } = parseTimeInput(timeInput);
+  const utcGuess = Date.UTC(year, month - 1, day, hour, minute);
+  const firstOffset = getTimeZoneOffsetMs(new Date(utcGuess), EVENT_TIME_ZONE);
+  const firstUtc = utcGuess - firstOffset;
+  const secondOffset = getTimeZoneOffsetMs(new Date(firstUtc), EVENT_TIME_ZONE);
+
+  return new Date(utcGuess - secondOffset);
+}
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
@@ -23,8 +93,8 @@ export const POST: APIRoute = async ({ request }) => {
     const newEvent = await prisma.event.create({
       data: {
         title: body.title,
-        date: new Date(body.date), 
-        time: new Date(`${body.date}T${body.time}`),
+        date: createDateOnly(body.date),
+        time: createSydneyDateTime(body.date, body.time),
         venue: body.venue,
         type: body.type,
         signupLink: body.signupLink,
@@ -140,8 +210,8 @@ export const PUT: APIRoute = async ({ request, url }) => {
       where: { id: parseInt(id) },
       data: {
         title: body.title,
-        date: new Date(body.date),
-        time: new Date(`${body.date}T${body.time}`),
+        date: createDateOnly(body.date),
+        time: createSydneyDateTime(body.date, body.time),
         venue: body.venue,
         type: body.type,
         signupLink: body.signupLink,

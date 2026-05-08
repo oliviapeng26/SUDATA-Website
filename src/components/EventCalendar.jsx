@@ -56,7 +56,7 @@ const EventCalendar = ({ events, initialEventId = '' }) => {
   // Filter events by active tags and selected year
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
-      const eventYear = new Date(event.date).getFullYear();
+      const eventYear = Number(String(event.date).slice(0, 4));
       const yearMatches = eventYear === selectedYear;
       
       // If no filters are active, show no events
@@ -72,8 +72,8 @@ const EventCalendar = ({ events, initialEventId = '' }) => {
   // Get events for selected month
   const monthEvents = useMemo(() => {
     return filteredEvents.filter(event => {
-      const eventDate = new Date(event.date);
-      return eventDate.getMonth() === selectedMonth;
+      const eventMonth = Number(String(event.date).slice(5, 7)) - 1;
+      return eventMonth === selectedMonth;
     });
   }, [filteredEvents, selectedMonth]);
 
