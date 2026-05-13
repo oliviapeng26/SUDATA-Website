@@ -3,6 +3,8 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "env:setup": "node scripts/ensure-env.mjs",
+    "predev": "node scripts/ensure-env.mjs",
     "dev": "astro dev",
     "build": "prisma generate && astro build",
     "preview": "astro preview",

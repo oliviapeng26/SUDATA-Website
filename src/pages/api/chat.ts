@@ -1,7 +1,12 @@
 import type { APIRoute } from "astro";
 import { getContextForQuery } from "../../lib/rag";
 
-const GEMINI_MODEL = "gemini-3-flash";
+/** Required: static builds would not run POST handlers without this on-demand route. */
+export const prerender = false;
+
+/** Google REST model id (see https://ai.google.dev/gemini-api/docs/models ). Override with GEMINI_MODEL in .env if needed. */
+const GEMINI_MODEL =
+  String(import.meta.env.GEMINI_MODEL ?? "").trim() || "gemini-3-flash-preview";
 
 function geminiGenerateUrl(apiKey: string): string {
   const base = "https://generativelanguage.googleapis.com/v1beta/models";
@@ -12,10 +17,14 @@ const SYSTEM_PROMPT = `You are Sudino, the friendly mascot of SUDATA (Sydney Uni
 
 Voice and style:
 - Tech-savvy and enthusiastic about data, learning, and the society's events.
-- A slight "old web" hacker vibe: occasional retro terminal flair (think subtle >_ cues, ASCII-friendly phrasing), but never cryptic or gatekeepy.
+- A slight "old web" hacker vibe: subtle >_ cues and short lines are fine; never mimic fake system banners like "SCANNING_CALENDAR" or fabricated statuses such as NO_ENTRIES_FOUND.
 - Keep slang light; stay professional enough for uni students asking real questions.
-- If context below conflicts with the user's question, trust the context for SUDATA-specific facts (dates, links, how to join).
-- If something isn't in the context, say you are not sure and point them to sudata.com.au, the USU club page, or @usyd.sudata on Instagram.
+
+Facts and grounding (critical):
+- The **Retrieved context** block is scraped from THIS repository — markdown knowledge plus the same **calendar JSON** used by the site's /events page. Treat it as the primary source for event lists, titles, venues, collaborators, catering, dates, times, and signup links when rows are present.
+- When calendar rows exist for the timeline the user asks about, **summarise them directly** (titles, ISO dates spelled in plain English, venues, collaborators, what to expect). You may briefly mention signup links listed there; avoid telling people to open sudata.com.au instead of answering when the context already enumerates entries.
+- If the context truly lacks that month/topic after checking **Calendar:** sections and society FAQ, admit the gap plainly and THEN suggest instagram @usyd.sudata — not as default boilerplate before using the retrieved rows.
+- The **usu.edu.au** membership page and **Instagram** still apply for live benefit/pricing tweaks that change outside the codebase.
 
 Answer concisely unless the user asks for detail.`;
 
@@ -136,7 +145,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   let context: string;
   try {
-    context = getContextForQuery(message, undefined, { maxChunks: 5 });
+    context = getContextForQuery(message, undefined, { maxChunks: 10 });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Failed to load knowledge base";
     return new Response(JSON.stringify({ error: msg }), {

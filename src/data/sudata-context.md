@@ -92,11 +92,12 @@ SUDATA runs **workshops**, **social events**, **industry-facing sessions**, and 
 
 Past and adjacent programming (verify dates on social/calendar each year) has included **bioinformatics**-oriented hackathon-style events promoted via **@usyd.sudata**—always confirm the **current** year’s name, date, and registration link.
 
-### Where to find the latest event details
+### Calendar data in this repository
 
-1. **Events page** on this Astro site (`/events`) backed by `src/data/events.json`.  
-2. **https://sudata.com.au/** and **Instagram (@usyd.sudata)** for announcements not yet in the JSON.  
-3. Signup links in the calendar (e.g. **Humanitix**, **Google Forms**) are authoritative for registration.
+Public events are stored in **`src/data/events.json`**, same feed as the Astro **`/events`** page — Sudino’s RAG layer reads it directly alongside this file.
+
+- **Signup links** embedded in rows (Humanitix, Google Forms, etc.) are factual registration targets; summarise them inline when advising members.
+- For **announcements newer than last JSON update**, **Instagram (@usyd.sudata)** is the natural delta — use it after checking the retrieved calendar slices, not as a substitute answer when listings already exist below.
 
 ---
 
@@ -114,4 +115,4 @@ Community composition statistics and executive profiles are presented on the **A
 
 ## Technical note for RAG consumers
 
-When this file is retrieved by keyword search, prefer **dated** statements (e.g. event dates, USU transition) from the **most recent** matching section and suggest users confirm on **sudata.com.au**, **USU**, or **Instagram** if the question is time-sensitive.
+Retrieval merges this markdown with **monthly calendar chunks** built from `src/data/events.json`. Prefer **dated** statements from the **Calendar: Month Year** sections when users ask about schedules. Do not claim “no entries” for a month if that month’s **Calendar:** block contains rows. Use **sudata.com.au / USU / Instagram** only for gaps, live legal changes, or items missing from the dataset.

@@ -122,12 +122,24 @@ export default function Chatbot() {
             ? `Request failed (${res.status})`
             : "No reply from Sudino.";
 
+      const detail =
+        typeof data === "object" &&
+        data !== null &&
+        "detail" in data &&
+        typeof (data as { detail: unknown }).detail === "string"
+          ? (data as { detail: string }).detail.trim()
+          : "";
+
+      const reply =
+        text ??
+        (detail ? `${err}\n>_ ${detail}` : err);
+
       setMessages((m) => [
         ...m,
         {
           id: uid(),
           role: "assistant",
-          text: text ?? err,
+          text: reply,
         },
       ]);
     } catch {
@@ -136,7 +148,7 @@ export default function Chatbot() {
         {
           id: uid(),
           role: "assistant",
-          text: ">_ Connection glitch. Is Ollama running on this machine? (localhost:11434)",
+          text: ">_ Lost connection before Sudino could reply. Check your network and try again.",
         },
       ]);
     } finally {
