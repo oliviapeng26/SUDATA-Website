@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 import vercel from '@astrojs/vercel';
@@ -9,4 +9,18 @@ export default defineConfig({
   output: 'server',
   adapter: vercel(),
   integrations: [react(), tailwind()],
+  env: {
+    schema: {
+      GEMINI_API_KEY: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      GEMINI_MODEL: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+    },
+  },
 });

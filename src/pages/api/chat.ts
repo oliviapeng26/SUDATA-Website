@@ -1,16 +1,17 @@
 import type { APIRoute } from "astro";
+import { GEMINI_API_KEY, GEMINI_MODEL } from "astro:env/server";
 import { getContextForQuery } from "../../lib/rag";
 
 /** Required: static builds would not run POST handlers without this on-demand route. */
 export const prerender = false;
 
 /** Google REST model id (see https://ai.google.dev/gemini-api/docs/models ). Override with GEMINI_MODEL in .env if needed. */
-const GEMINI_MODEL =
-  String(import.meta.env.GEMINI_MODEL ?? "").trim() || "gemini-3-flash-preview";
+const GEMINI_MODEL_ID =
+  String(GEMINI_MODEL ?? "").trim() || "gemini-3-flash-preview";
 
 function geminiGenerateUrl(apiKey: string): string {
   const base = "https://generativelanguage.googleapis.com/v1beta/models";
-  return `${base}/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  return `${base}/${GEMINI_MODEL_ID}:generateContent?key=${encodeURIComponent(apiKey)}`;
 }
 
 const SYSTEM_PROMPT = `You are Sudino, the friendly mascot of SUDATA (Sydney University Data Analytics society at USYD). You are a data-loving dinosaur: warm, curious, and genuinely helpful to students.
@@ -99,8 +100,8 @@ function extractGeminiText(data: GeminiGenerateContentResponse): string | null {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  const apiKey = import.meta.env.GEMINI_API_KEY;
-  if (apiKey === undefined || apiKey === null || String(apiKey).trim() === "") {
+  const apiKey = GEMINI_API_KEY?.trim();
+  if (!apiKey) {
     return new Response(
       JSON.stringify({
         error:
