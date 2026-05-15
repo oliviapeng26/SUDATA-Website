@@ -3,6 +3,8 @@
 import type { APIRoute } from "astro";
 import prisma from "../../lib/prisma";
 
+export const prerender = false;
+
 export const GET: APIRoute = async () => {
   const users = await prisma.user.findMany({
     include: { posts: true },

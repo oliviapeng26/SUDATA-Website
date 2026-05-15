@@ -360,3 +360,80 @@
 .docs-prose img {
   @apply rounded-xl my-4 max-w-full;
 }
+
+/* ── Sudino chatbot (Chatbot.tsx) — mascot motion + eye pulse ── */
+@keyframes chatbot-sudino-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes chatbot-tail-wag {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+}
+
+@keyframes chatbot-eye-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    box-shadow: 0 0 4px #00f0ff, 0 0 10px #22d3ee, 0 0 16px rgba(0, 240, 255, 0.45);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 10px #67e8f9, 0 0 20px #00f0ff, 0 0 28px rgba(34, 211, 238, 0.65);
+  }
+}
+
+.chatbot-mascot-float {
+  animation: chatbot-sudino-float 3s ease-in-out infinite;
+}
+
+.chatbot-mascot-tail {
+  transform-origin: 72% 88%;
+  animation: chatbot-tail-wag 2.4s ease-in-out infinite;
+}
+
+.chatbot-mascot-thinking .chatbot-eye-dot {
+  animation: chatbot-eye-pulse 0.85s ease-in-out infinite;
+}
+
+.chatbot-mascot-thinking .chatbot-sudino-img {
+  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.5));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chatbot-mascot-float,
+  .chatbot-mascot-tail,
+  .chatbot-mascot-thinking .chatbot-eye-dot {
+    animation: none !important;
+  }
+  .chatbot-mascot-thinking .chatbot-sudino-img {
+    filter: none;
+  }
+}
+
+/* Smaller header close control inside chat panel (global mobile rule is 44px) */
+@media (max-width: 640px) {
+  .chatbot-panel button.chatbot-header-close {
+    min-height: 36px;
+    min-width: 36px;
+  }
+
+  .chatbot-panel .chatbot-send-btn {
+    min-height: 44px;
+    min-width: auto;
+  }
+}
