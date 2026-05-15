@@ -304,18 +304,25 @@ export default function Chatbot() {
               ref={scrollRef}
               className={`scrollbar-hide relative z-20 min-h-0 flex-1 space-y-2 overflow-y-auto overflow-x-hidden px-2 py-2 sm:px-3 sm:py-3 ${expanded ? "md:px-6 md:py-4 lg:mx-auto lg:max-w-3xl lg:w-full" : ""}`}
             >
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={
-                    m.role === "user"
-                      ? `rounded-xl border border-sudata-neon/35 bg-sudata-neon/10 px-2.5 py-2 text-right font-mono-tech text-sudata-grey text-sm sm:px-3 sm:text-base ${expanded ? "ml-0 sm:ml-8 md:ml-16" : "ml-2 sm:ml-3"}`
-                      : `rounded-xl border border-white/15 bg-white/[0.06] px-2.5 py-2 text-left font-mono-tech text-sudata-grey text-sm sm:px-3 sm:text-base ${expanded ? "mr-0 sm:mr-8 md:mr-16" : "mr-2 sm:mr-3"}`
-                  }
-                >
-                  <span className="whitespace-pre-wrap break-words">{m.text}</span>
-                </div>
-              ))}
+              {messages.map((m) => {
+                const isUser = m.role === "user";
+                return (
+                  <div
+                    key={m.id}
+                    className={`flex w-full ${isUser ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`w-fit max-w-[min(100%,85%)] rounded-xl border px-2.5 py-2 font-mono-tech text-sm sm:max-w-[min(100%,80%)] sm:px-3 sm:text-base ${
+                        isUser
+                          ? "border-sudata-neon/35 bg-sudata-neon/10 text-right text-sudata-grey"
+                          : "border-white/15 bg-white/[0.06] text-left text-sudata-grey"
+                      } ${expanded ? (isUser ? "sm:max-w-[min(100%,70%)]" : "sm:max-w-[min(100%,75%)]") : ""}`}
+                    >
+                      <span className="whitespace-pre-wrap break-words">{m.text}</span>
+                    </div>
+                  </div>
+                );
+              })}
               {loading && (
                 <div
                   className={`flex items-center gap-2 rounded-xl border border-sudata-neon/25 bg-white/[0.06] px-2.5 py-2 font-mono-tech text-sm text-sudata-grey sm:px-3 sm:text-base ${expanded ? "mr-0 sm:mr-8" : "mr-2 sm:mr-3"}`}

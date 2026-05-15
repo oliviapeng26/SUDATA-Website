@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "env:setup": "node scripts/ensure-env.mjs",
-    "predev": "node scripts/ensure-env.mjs",
+    "predev": "node scripts/ensure-env.mjs && prisma generate",
     "dev": "astro dev",
     "build": "prisma generate && astro build",
     "preview": "astro preview",
@@ -16,6 +16,7 @@
   "dependencies": {
     "@astrojs/react": "^4.4.2",
     "@astrojs/tailwind": "^6.0.2",
+    "@astrojs/vercel": "^9.0.5",
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
     "@react-three/drei": "^10.7.7",
@@ -37,7 +38,6 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@astrojs/vercel": "^8.2.11",
     "@types/pg": "^8.20.0",
     "prisma": "^7.6.0",
     "tsx": "^4.21.0"

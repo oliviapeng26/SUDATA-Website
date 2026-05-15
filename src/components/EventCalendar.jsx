@@ -3,7 +3,8 @@ import EventModal from './EventModal';
 import { getSemesterInfo } from '../data/semesterDates';
 import { getHolidayName } from '../data/publicHolidays';
 
-const EventCalendar = ({ events }) => {
+const EventCalendar = ({ events, initialEventId = '' }) => {
+  const revealClassName = 'reveal-on-scroll opacity-0 translate-y-[40px] transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]';
   const currentYear = new Date().getFullYear();
   // Keep null during SSR/SSG so the static HTML has no "today" circle,
   // avoiding a hydration mismatch. useEffect sets these client-side in
@@ -16,6 +17,16 @@ const EventCalendar = ({ events }) => {
     setTodayDay(now.getDate());
     setTodayMonth(now.getMonth());
     setTodayYear(now.getFullYear());
+  }, []);
+
+  useEffect(() => {
+    if (!initialEventId) return;
+    const evt = events.find(e => String(e.id) === String(initialEventId));
+    if (!evt) return;
+    const [yearStr, monthStr] = evt.date.split('-');
+    setSelectedYear(parseInt(yearStr));
+    setSelectedMonth(parseInt(monthStr) - 1);
+    setSelectedEvent(evt);
   }, []);
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // 0 = January
@@ -45,7 +56,7 @@ const EventCalendar = ({ events }) => {
   // Filter events by active tags and selected year
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
-      const eventYear = new Date(event.date).getFullYear();
+      const eventYear = Number(String(event.date).slice(0, 4));
       const yearMatches = eventYear === selectedYear;
       
       // If no filters are active, show no events
@@ -61,8 +72,8 @@ const EventCalendar = ({ events }) => {
   // Get events for selected month
   const monthEvents = useMemo(() => {
     return filteredEvents.filter(event => {
-      const eventDate = new Date(event.date);
-      return eventDate.getMonth() === selectedMonth;
+      const eventMonth = Number(String(event.date).slice(5, 7)) - 1;
+      return eventMonth === selectedMonth;
     });
   }, [filteredEvents, selectedMonth]);
 
@@ -153,7 +164,7 @@ const EventCalendar = ({ events }) => {
   return (
     <div className="space-y-8">
       {/* Filters */}
-      <div className="reveal-on-scroll flex flex-wrap justify-center gap-3 sm:gap-4">
+      <div className={`${revealClassName} flex flex-wrap justify-center gap-3 sm:gap-4`}>
         {Object.entries(filterConfig).map(([type, config]) => (
           <button
             key={type}
@@ -181,7 +192,7 @@ const EventCalendar = ({ events }) => {
       </div>
 
       {/* Year Selector - Current Year + Archive Dropdown */}
-      <div className="reveal-on-scroll flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
+      <div className={`${revealClassName} flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4`}>
         <button
           onClick={() => {
             setSelectedYear(currentYear);
@@ -242,7 +253,7 @@ const EventCalendar = ({ events }) => {
       </div>
 
       {/* Month Navigation */}
-      <div className="reveal-on-scroll flex items-center justify-between max-w-2xl mx-auto px-2">
+      <div className={`${revealClassName} flex items-center justify-between max-w-2xl mx-auto px-2`}>
         <button
           onClick={() => {
             if (selectedMonth === 0) {
@@ -297,7 +308,7 @@ const EventCalendar = ({ events }) => {
       </div>
 
       {/* Calendar Grid */}
-      <div className="reveal-on-scroll bg-[#020617] rounded-xl sm:rounded-2xl border border-[#00F0FF]/20 p-3 sm:p-4 md:p-6 backdrop-blur-2xl"
+      <div className={`${revealClassName} bg-[#020617] rounded-xl sm:rounded-2xl border border-[#00F0FF]/20 p-3 sm:p-4 md:p-6 backdrop-blur-2xl`}
            style={{ boxShadow: '0 0 40px rgba(0,240,255,0.1)' }}>
         {/* Day Headers */}
         <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 sm:mb-4">
@@ -369,7 +380,7 @@ const EventCalendar = ({ events }) => {
                               return (
                                 <button
                                   key={event.id}
-                                  onClick={() => setSelectedEvent(event)}
+                                  onClick={() => { window.history.replaceState(null, '', `/events?event=${event.id}`); setSelectedEvent(event); }}
                                   className={`w-full text-left px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold line-clamp-3 transition-colors touch-manipulation`}
                                   style={{
                                     backgroundColor: eventConfig.color,
@@ -396,7 +407,7 @@ const EventCalendar = ({ events }) => {
 
       {/* Event Modal */}
       {selectedEvent && (
-        <EventModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+        <EventModal event={selectedEvent} onClose={() => { window.history.replaceState(null, '', '/events'); setSelectedEvent(null); }} />
       )}
     </div>
   );

@@ -2,7 +2,12 @@ import { useState, useEffect } from 'react';
 
 function formatDate(dateStr) {
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+  return d.toLocaleDateString('en-AU', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'Australia/Sydney',
+  });
 }
 
 function formatTime(timeStr) {
@@ -61,6 +66,7 @@ function EventRow({ ev }) {
         href={hasLink}
         target="_blank"
         rel="noopener noreferrer"
+        data-track={`event-signup:${(ev.title || 'unknown').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
         className="block hover:opacity-90 active:opacity-75 transition-opacity"
         style={{ textDecoration: 'none' }}
       >

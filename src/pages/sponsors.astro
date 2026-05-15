@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import Layout from '../layouts/Layout.astro';
 import PastPartnersCarousel from '../components/PastPartnersCarousel.jsx';
 import CopyEmailButton from '../components/CopyEmailButton.jsx';
@@ -110,6 +111,7 @@ const delayClasses = ['delay-0', 'delay-100', 'delay-200', 'delay-300', 'delay-[
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
+                  data-track={`sponsor-page:${s.name.toLowerCase().replace(/\s+/g, '-')}`}
                   class={`group glass-panel-3d p-8 flex flex-col items-start text-left relative scanline-overlay flex-shrink-0 ${delayClasses[i % delayClasses.length]}`}
                 >
                   <div class="relative z-10 mb-6 font-mono-tech text-sudata-neon text-xs tracking-[0.2em] opacity-80 whitespace-nowrap">
@@ -439,6 +441,7 @@ const delayClasses = ['delay-0', 'delay-100', 'delay-200', 'delay-300', 'delay-[
 							download="SUDATA_Sponsorships_Prospectus_2026.pdf"
 							target="_blank"
 							rel="noopener noreferrer"
+							data-track="download:sponsorship-prospectus"
 							class="group relative px-4 py-2 sm:px-8 sm:py-3 bg-transparent border-2 border-sudata-neon text-sudata-neon font-mono-tech tracking-wider text-xs sm:text-sm hover:bg-sudata-neon/10 transition-all duration-300 flex items-center gap-2"
 						>
 							<span>DOWNLOAD PROSPECTUS</span>
@@ -448,6 +451,7 @@ const delayClasses = ['delay-0', 'delay-100', 'delay-200', 'delay-300', 'delay-[
 						</a>
 						<a
 							href="mailto:sponsorships@sudata.org?subject=Partnership%20Inquiry%20-%20SUDATA%202026"
+							data-track="contact:become-sponsor"
 							class="group relative px-4 py-2 sm:px-8 sm:py-3 bg-sudata-neon text-black font-mono-tech font-bold tracking-wider text-xs sm:text-sm hover:bg-sudata-neon/90 transition-all duration-300 flex items-center gap-2"
 						>
 							<span>BECOME A SPONSOR</span>

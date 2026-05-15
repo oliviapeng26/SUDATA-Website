@@ -1,14 +1,28 @@
 ---
+export const prerender = false;
 import Layout from '../layouts/Layout.astro';
 import EventCalendar from '../components/EventCalendar.jsx';
 import UpcomingEvents from '../components/UpcomingEvents.jsx';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { getFormattedEvents } from '../services/eventService';
+import { isAdminRequest } from '../lib/adminAuth';
+import CalendarSubscribe from '../components/CalendarSubscribe';
 
 const pageTitle = 'Events | SUDATA';
+const isAdmin = isAdminRequest(Astro.cookies);
 
-const eventsJson = readFileSync(join(process.cwd(), 'src/data/events.json'), 'utf-8');
-const eventsData = JSON.parse(eventsJson);
+// Determine if the user navigated here from an admin route
+const referer = Astro.request.headers.get('referer');
+let isComingFromAdmin = false;
+if (referer) {
+  try {
+    isComingFromAdmin = new URL(referer, Astro.url.origin).pathname.startsWith('/admin');
+  } catch (e) {
+    isComingFromAdmin = false;
+  }
+}
+
+const eventsData = JSON.parse(JSON.stringify(await getFormattedEvents()));
+const initialEventId = Astro.url.searchParams.get('event') ?? '';
 ---
 
 
@@ -27,9 +41,25 @@ const eventsData = JSON.parse(eventsJson);
           [ Temporal Data Stream ]
         </p>
 
+        <!-- Calendar subscription button -->
+        <div class="flex justify-center mb-6">
+          <CalendarSubscribe client:load />
+        </div>
+
+        {isAdmin && isComingFromAdmin && (
+          <div class="flex justify-center mb-8 reveal-on-scroll">
+            <a 
+              href="/admin/events" 
+              class="px-6 py-2 border border-[#00F0FF]/40 text-[#00F0FF] text-xs font-mono-tech tracking-[0.2em] uppercase hover:bg-[#00F0FF]/10 hover:border-[#00F0FF] transition-all duration-300 flex items-center gap-2"
+            >
+               Back to Event Catalog 
+            </a>
+          </div>
+        )}
+
         <!-- UPCOMING_EVENTS section -->
         <div class="reveal-on-scroll max-w-7xl mx-auto mb-8 text-left">
-          <UpcomingEvents events={eventsData.events} client:load />
+          <UpcomingEvents events={eventsData} client:load />
         </div>
 
         <!-- CALENDAR_GUIDE section (renamed from NAVIGATION_PROTOCOL) -->
@@ -61,7 +91,7 @@ const eventsData = JSON.parse(eventsJson);
                 </div>
                 <div class="flex items-start gap-2">
                   <span class="text-sudata-neon mt-0.5">&gt;</span>
-                  <span>All timestamps synced to local timezone</span>
+                  <span>All timestamps synced to Sydney time</span>
                 </div>
               </div>
             </div>
@@ -72,7 +102,7 @@ const eventsData = JSON.parse(eventsJson);
 
     <!-- Calendar Component -->
     <div class="max-w-7xl mx-auto">
-      <EventCalendar events={eventsData.events} client:load />
+      <EventCalendar events={eventsData} initialEventId={initialEventId} client:load />
     </div>
 
   </div>
