@@ -47,7 +47,11 @@ export const GET: APIRoute = async () => {
       "X-WR-CALNAME:SUDATA Events",
       "X-WR-CALDESC:Events from the Sydney University Data Society",
       "X-WR-TIMEZONE:Australia/Sydney",
-      "X-PUBLISHED-TTL:PT0S",
+      // Refresh hints — ask clients to re-poll hourly. Clients ultimately
+      // decide their own cadence (Google can still take many hours), but a
+      // valid, short interval is respected better than the invalid PT0S.
+      "REFRESH-INTERVAL;VALUE=DURATION:PT1H",
+      "X-PUBLISHED-TTL:PT1H",
     ];
 
     for (const event of events) {
