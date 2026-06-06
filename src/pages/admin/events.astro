@@ -29,27 +29,6 @@ import EventManager from "../../components/EventManager.jsx";
 </Layout>
 
 <style is:global>
-  .label-neon {
-    @apply flex items-center gap-2 text-[#00F0FF] text-[10px] tracking-[0.2em] uppercase font-bold mb-2;
-  }
-
-  .input-field {
-    @apply w-full bg-slate-900/60 border border-[#00F0FF]/20 p-4 text-white
-           placeholder:text-white/20 font-mono text-sm
-           focus:outline-none focus:border-[#00F0FF] focus:bg-slate-900/90
-           transition-all duration-300;
-  }
-
-  .submit-btn {
-    @apply w-full flex items-center justify-center gap-4 bg-[#00F0FF] text-[#020617]
-           font-bold py-4 tracking-[0.4em] uppercase transition-all duration-300
-           shadow-[0_0_20px_rgba(0,240,255,0.4)];
-  }
-
-  .submit-btn:hover {
-    @apply bg-white shadow-[0_0_30px_white] -translate-y-1;
-  }
-
   .reveal-on-scroll {
     animation: reveal-view cubic-bezier(0.16, 1, 0.3, 1) both;
     animation-timeline: view();

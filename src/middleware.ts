@@ -4,15 +4,16 @@ import { isAdminRequest } from "./lib/adminAuth";
 const isAdminPage = (pathname: string) =>
   pathname === "/admin" || (pathname.startsWith("/admin/") && pathname !== "/admin/login");
 
-const isProtectedEventWrite = (pathname: string, method: string) =>
-  pathname === "/api/event" && ["POST", "PUT", "DELETE"].includes(method.toUpperCase());
+const isProtectedWrite = (pathname: string, method: string) =>
+  (pathname === "/api/event" || pathname === "/api/album") &&
+  ["POST", "PUT", "DELETE"].includes(method.toUpperCase());
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, request } = context;
   const pathname = url.pathname;
   const method = request.method;
 
-  const needsAdmin = isAdminPage(pathname) || isProtectedEventWrite(pathname, method);
+  const needsAdmin = isAdminPage(pathname) || isProtectedWrite(pathname, method);
   if (!needsAdmin) {
     return next();
   }
