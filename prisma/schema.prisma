@@ -27,7 +27,8 @@ model Event {
   id            Int      @id @default(autoincrement())
   title         String
   date          DateTime
-  time          DateTime @db.Timestamptz(3)
+  time          DateTime  @db.Timestamptz(3)
+  endTime       DateTime? @db.Timestamptz(3)
   venue         String
   type          String
   signupLink    String

@@ -52,7 +52,10 @@ export const GET: APIRoute = async () => {
 
     for (const event of events) {
       const startDate = new Date(event.time);
-      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+      const endCandidate = event.endTime ? new Date(event.endTime) : null;
+      const endDate = endCandidate && endCandidate > startDate
+        ? endCandidate
+        : new Date(startDate.getTime() + 60 * 60 * 1000);
       const dtStart = formatICalDate(startDate);
       const dtEnd = formatICalDate(endDate);
 

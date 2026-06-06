@@ -19,14 +19,18 @@ export async function getFormattedEvents() {
     orderBy: { date: 'asc' },
   });
 
-  return rawEvents.map(event => ({
-    ...event,
-    date: toSydneyDateString(new Date(event.date)),
-    time: new Date(event.time).toLocaleTimeString('en-AU', {
+  const toSydneyTimeString = (value: Date) =>
+    value.toLocaleTimeString('en-AU', {
       timeZone: EVENT_TIME_ZONE,
       hour12: false,
       hour: '2-digit',
       minute: '2-digit'
-    })
+    });
+
+  return rawEvents.map(event => ({
+    ...event,
+    date: toSydneyDateString(new Date(event.date)),
+    time: toSydneyTimeString(new Date(event.time)),
+    endTime: event.endTime ? toSydneyTimeString(new Date(event.endTime)) : null
   }));
 }

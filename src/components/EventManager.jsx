@@ -46,6 +46,8 @@ const normalizeEventTimes = (events) => {
     ...event,
     timeInput: toSydneyTimeInput(event.time),
     timeDisplay: toSydneyTimeDisplay(event.time),
+    endTimeInput: event.endTime ? toSydneyTimeInput(event.endTime) : '',
+    endTimeDisplay: event.endTime ? toSydneyTimeDisplay(event.endTime) : '',
   }));
 };
 
@@ -54,10 +56,17 @@ export default function EventManager() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [editFormData, setEditFormData] = useState(false);
+  const [toast, setToast] = useState('');
 
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(''), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const fetchEvents = async () => {
     try {
@@ -93,6 +102,16 @@ export default function EventManager() {
 
   return (
     <div className="relative">
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-6 right-6 z-[1000] animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="bg-[#00F0FF]/10 border border-[#00F0FF] text-[#00F0FF] px-4 py-3 rounded-md shadow-[0_0_15px_rgba(0,240,255,0.2)] font-mono text-xs flex items-center gap-3">
+            <span className="text-lg font-bold">✓</span>
+            <p className="tracking-wide uppercase">{toast}</p>
+          </div>
+        </div>
+      )}
+
       {/* Header with Add Button */}
       <div className="flex justify-center md:justify-end mt-2 mb-5 md:mt-0 md:mb-8">
         <button
@@ -140,11 +159,12 @@ export default function EventManager() {
             </h2>
 
             <EventForm
-              onSuccess={() => {
+              onSuccess={(message) => {
                 setIsModalOpen(false);
                 setEditingEvent(null);
                 setEditFormData(false);
                 fetchEvents();
+                setToast(message || 'Event saved.');
               }}
               initialData={editingEvent}
             />

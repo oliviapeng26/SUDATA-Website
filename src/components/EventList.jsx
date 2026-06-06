@@ -217,7 +217,7 @@ function EventCard({ event, onEdit, onDelete, typeColor }) {
             {event.title}
           </h3>
           <p className="text-[10px] text-white/60 tracking-widest">
-            {formatDate(event.date)} · {event.timeDisplay || 'TBA'}
+            {formatDate(event.date)} · {event.timeDisplay || 'TBA'}{event.endTimeDisplay ? ` – ${event.endTimeDisplay}` : ''}
           </p>
         </div>
 

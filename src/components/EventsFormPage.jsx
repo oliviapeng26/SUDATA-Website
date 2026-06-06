@@ -57,6 +57,7 @@ export default function EventForm({  onSuccess,initialData, }) {
         title: '',
         date: '',
         time: '',
+        endTime: '',
         venue: '',
         type: 'academic',
         signupLink: '',
@@ -65,8 +66,15 @@ export default function EventForm({  onSuccess,initialData, }) {
         description: ''
     });
 
-    const [showSuccess, setShowSuccess] = useState(false);
+    const [error, setError] = useState('');
     const [imagePreview, setImagePreview] = useState(initialData?.image || null);
+
+    const addOneHour = (timeStr) => {
+        const [h, m] = timeStr.split(':').map(Number);
+        if (isNaN(h) || isNaN(m)) return '';
+        const total = (h * 60 + m + 60) % (24 * 60);
+        return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+    };
 
     // Update form when initialData changes (for edit mode)
     useEffect(() => {
@@ -75,7 +83,8 @@ export default function EventForm({  onSuccess,initialData, }) {
             setFormData({
                 ...initialData,
                 date: formattedDate,
-                time: formattedTime
+                time: formattedTime,
+                endTime: formatTimeForInput(initialData.endTimeInput || initialData.endTime)
             });
             setImagePreview(initialData?.image || null);
         } else {
@@ -83,6 +92,7 @@ export default function EventForm({  onSuccess,initialData, }) {
                 title: '',
                 date: '',
                 time: '',
+                endTime: '',
                 venue: '',
                 type: 'academic',
                 signupLink: '',
@@ -96,7 +106,15 @@ export default function EventForm({  onSuccess,initialData, }) {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setError('');
+        setFormData(prev => {
+            const next = { ...prev, [name]: value };
+            // Default end time to one hour after start when start is set and end is empty
+            if (name === 'time' && value && !prev.endTime) {
+                next.endTime = addOneHour(value);
+            }
+            return next;
+        });
     };
 
     const handleImageChange = (e) => {
@@ -118,43 +136,37 @@ export default function EventForm({  onSuccess,initialData, }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-       
+
+        if (formData.endTime && formData.time && formData.endTime <= formData.time) {
+            setError('End time must be after the start time.');
+            return;
+        }
+        setError('');
+
         const isEditing = !!initialData && !!initialData.id;
         const url = isEditing ? `/api/event?id=${initialData.id}` : '/api/event';
         const method = isEditing ? 'PUT' : 'POST';
+
+        const payload = {
+            ...formData,
+            collaborators: (formData.collaborators || []).map(c => c.trim()).filter(Boolean),
+        };
 
         try {
             const response = await fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(payload),
             });
 
             if (response.ok) {
-                setShowSuccess(true);
-                setFormData({
-                    title: '',
-                    date: '',
-                    time: '',
-                    venue: '',
-                    type: 'academic',
-                    signupLink: '',
-                    catering: '',
-                    collaborators: [],
-                    description: ''
-                }); // Clear form after submission
                 setImagePreview(null);
-                onSuccess();
-                // setTimeout(() => {
-                //     setShowSuccess(false);
-                //      // Call the success callback
-
-                //   }, 5000);
+                onSuccess(isEditing ? 'Event updated.' : 'Event created.');
             } else {
-                console.error('Failed to submit event:', response.statusText);
+                setError('Failed to save event. Please try again.');
             }
-        } catch (error) {
-            console.error('Error submitting event:', error);
+        } catch (err) {
+            setError('Network error — could not reach the server.');
         }
     };
 
@@ -178,8 +190,8 @@ export default function EventForm({  onSuccess,initialData, }) {
                 </div>
             </div>
 
-            {/* SECTION: DATE, TIME, VENUE */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* SECTION: DATE & TIME */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
                 <div className="space-y-2">
                     <label className="label-neon">Date</label>
                     <input
@@ -192,7 +204,7 @@ export default function EventForm({  onSuccess,initialData, }) {
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="label-neon">Time</label>
+                    <label className="label-neon">Start Time</label>
                     <input
                         name="time"
                         type="time"
@@ -202,8 +214,27 @@ export default function EventForm({  onSuccess,initialData, }) {
                         required
                     />
                 </div>
+                <div className="col-span-2 sm:col-span-1 space-y-2">
+                    <label className="label-neon">
+                        End Time <span className="text-white/40 normal-case">(optional)</span>
+                    </label>
+                    <input
+                        name="endTime"
+                        type="time"
+                        value={formData.endTime}
+                        onChange={handleChange}
+                        min={formData.time || undefined}
+                        className="input-field"
+                    />
+                </div>
+            </div>
+
+            {/* SECTION: VENUE & TYPE */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                    <label className="label-neon">Venue</label>
+                    <label className="label-neon">
+                        Venue <span className="text-white/40 normal-case">(optional)</span>
+                    </label>
                     <input
                         name="venue"
                         type="text"
@@ -211,13 +242,8 @@ export default function EventForm({  onSuccess,initialData, }) {
                         onChange={handleChange}
                         placeholder="TBA"
                         className="input-field"
-                        required
                     />
                 </div>
-            </div>
-
-            {/* SECTION: TYPE & LINK */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <label className="label-neon">Type</label>
                     <select
@@ -230,24 +256,29 @@ export default function EventForm({  onSuccess,initialData, }) {
                         <option value="social">Social</option>
                     </select>
                 </div>
-                <div className="space-y-2">
-                    <label className="label-neon">Link</label>
-                    <input
-                        name="signupLink"
-                        type="text"
-                        value={formData.signupLink}
-                        onChange={handleChange}
-                        placeholder="https://forms.google.com/..."
-                        className="input-field"
-                        required
-                    />
-                </div>
+            </div>
+
+            {/* SECTION: LINK */}
+            <div className="space-y-2">
+                <label className="label-neon">
+                    Link <span className="text-white/40 normal-case">(optional)</span>
+                </label>
+                <input
+                    name="signupLink"
+                    type="url"
+                    value={formData.signupLink}
+                    onChange={handleChange}
+                    placeholder="https://forms.google.com/..."
+                    className="input-field"
+                />
             </div>
 
             {/* SECTION: CATERING & COLLABORATORS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                    <label className="label-neon">Catering</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                <div>
+                    <label className="label-neon whitespace-nowrap">
+                        Catering <span className="text-white/40 normal-case tracking-normal">(optional)</span>
+                    </label>
                     <input
                         name="catering"
                         type="text"
@@ -255,50 +286,54 @@ export default function EventForm({  onSuccess,initialData, }) {
                         onChange={handleChange}
                         placeholder="e.g., Pizza and drinks"
                         className="input-field"
-                        required
                     />
                 </div>
-                <div className="space-y-2">
-                    <label className="label-neon" required>Collaborators</label>
-                    {formData.collaborators.map((collab, index) => (
-                        <div key={index} className="flex gap-2 mb-2">
-                            <input
-                                type="text"
-                                value={collab}
-                                onChange={(e) => {
-                                    const newCollabs = [...formData.collaborators];
-                                    newCollabs[index] = e.target.value;
-                                    setFormData({ ...formData, collaborators: newCollabs });
-                                }}
-                                className="input-field"
-                                required
-                            />
-                            {/* Remove Button */}
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const newCollabs = formData.collaborators.filter((_, i) => i !== index);
-                                    setFormData({ ...formData, collaborators: newCollabs });
-                                }}
-                                className="px-3 border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white transition-all"
-                            >
-                                X
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, collaborators: [...formData.collaborators, ''] })}
-                        className="text-[10px] text-sudata-neon border border-sudata-neon/30 px-2 py-1 hover:bg-sudata-neon/10"
-                    >
-                        + ADD COLLABORATOR
-                    </button>
+                <div>
+                    <label className="label-neon whitespace-nowrap">
+                        Collaborators <span className="text-white/40 normal-case tracking-normal">(optional)</span>
+                    </label>
+                    <div className="space-y-2">
+                        {formData.collaborators.map((collab, index) => (
+                            <div key={index} className="flex items-stretch gap-2">
+                                <input
+                                    type="text"
+                                    value={collab}
+                                    onChange={(e) => {
+                                        const newCollabs = [...formData.collaborators];
+                                        newCollabs[index] = e.target.value;
+                                        setFormData({ ...formData, collaborators: newCollabs });
+                                    }}
+                                    className="input-field"
+                                />
+                                {/* Remove Button */}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const newCollabs = formData.collaborators.filter((_, i) => i !== index);
+                                        setFormData({ ...formData, collaborators: newCollabs });
+                                    }}
+                                    className="px-3 border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                                >
+                                    X
+                                </button>
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, collaborators: [...formData.collaborators, ''] })}
+                            className="text-[10px] text-sudata-neon border border-sudata-neon/30 px-2 py-1 hover:bg-sudata-neon/10"
+                        >
+                            + ADD COLLABORATOR
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* SECTION: DESCRIPTION */}
             <div className="space-y-2">
-                <label className="label-neon">Description</label>
+                <label className="label-neon">
+                    Description <span className="text-white/40 normal-case">(optional)</span>
+                </label>
                 <textarea
                     name="description"
                     rows={4}
@@ -306,7 +341,6 @@ export default function EventForm({  onSuccess,initialData, }) {
                     onChange={handleChange}
                     placeholder="Detailed event breakdown..."
                     className="input-field resize-none"
-                    required
                 ></textarea>
             </div>
 
@@ -360,19 +394,15 @@ export default function EventForm({  onSuccess,initialData, }) {
             {/* SUBMIT BUTTON */}
             <div className="pt-6">
                 <button type="submit" className="submit-btn group">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ imageRendering: 'pixelated', filter: 'drop-shadow(0 0 5px #020617)' }}>
-                        <path d="M4 12l4 4 8-8" stroke="#020617" strokeWidth="2" />
-                        <path d="M2 2h20v20H2V2zm18 18V4H4v16h16z" fill="#020617" />
-                    </svg>
-                    Upload
+                    Save
                 </button>
 
-                {/* SUCCESS MESSAGE */}
-                {showSuccess && (
+                {/* ERROR MESSAGE */}
+                {error && (
                     <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <div className="bg-[#00F0FF]/10 border border-[#00F0FF] text-[#00F0FF] px-4 py-2 rounded-md shadow-[0_0_15px_rgba(0,240,255,0.2)] font-mono text-xs flex items-center gap-3">
-                            <span className="text-lg font-bold">✓</span>
-                            <p className="tracking-widest uppercase">Event added successfully!!</p>
+                        <div className="bg-red-500/10 border border-red-500 text-red-400 px-4 py-2 rounded-md font-mono text-xs flex items-center gap-3">
+                            <span className="text-lg font-bold">!</span>
+                            <p className="tracking-wide">{error}</p>
                         </div>
                     </div>
                 )}

@@ -91,6 +91,25 @@ const EventModal = ({ event, onClose }) => {
     return { hours: 0, minutes: 0 };
   };
 
+  // Returns the event's end time as {hours, minutes}, or null if not set
+  const parseEndTime = () => {
+    if (event.endTime && event.endTime.includes(':')) {
+      const [h, m] = event.endTime.split(':').map(Number);
+      if (!isNaN(h) && !isNaN(m)) return { hours: h, minutes: m };
+    }
+    return null;
+  };
+
+  // Resolve the end Date — uses the event's end time when valid, else falls back to a 1-hour duration
+  const resolveEndDate = (startDate, year, month, day) => {
+    const end = parseEndTime();
+    if (end) {
+      const candidate = new Date(year, month - 1, day, end.hours, end.minutes);
+      if (candidate > startDate) return candidate;
+    }
+    return new Date(startDate.getTime() + 60 * 60 * 1000);
+  };
+
   /**
    * Generate ICS file content for calendar import
    */
@@ -101,9 +120,9 @@ const EventModal = ({ event, onClose }) => {
     
     // Create start date object
     const startDate = new Date(year, month - 1, day, hours, minutes);
-    
-    // Assume 1 hour duration if not specified
-    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+
+    // Use the event's end time if set, otherwise assume 1 hour duration
+    const endDate = resolveEndDate(startDate, year, month, day);
     
     // Format dates for ICS (YYYYMMDDTHHMMSS)
     const formatICSDate = (date) => {
@@ -135,7 +154,9 @@ const EventModal = ({ event, onClose }) => {
     if (event.catering && event.catering !== 'None') {
       description += `\\n\\nCatering: ${event.catering}`;
     }
-    description += `\\n\\nSign up: ${event.signupLink}`;
+    if (event.signupLink) {
+      description += `\\n\\nSign up: ${event.signupLink}`;
+    }
     
     // ICS content
     const icsContent = [
@@ -187,7 +208,13 @@ const EventModal = ({ event, onClose }) => {
     const [year, month, day] = event.date.split('-').map(Number);
     const { hours, minutes } = parseEventTime(event.time);
     const start = new Date(Date.UTC(year, month - 1, day, hours, minutes));
-    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    const endParts = parseEndTime();
+    const endCandidate = endParts
+      ? new Date(Date.UTC(year, month - 1, day, endParts.hours, endParts.minutes))
+      : null;
+    const end = endCandidate && endCandidate > start
+      ? endCandidate
+      : new Date(start.getTime() + 60 * 60 * 1000);
     const fmt = (d) => d.toISOString().replace(/-|:|\.\d+/g, '');
     const params = new URLSearchParams({
       action: 'TEMPLATE',
@@ -283,11 +310,12 @@ const EventModal = ({ event, onClose }) => {
             </div>
             <div className="min-w-0">
               <div className="text-xs text-[#94a3b8] uppercase tracking-wider mb-1">Time</div>
-              <div className="text-sm sm:text-base font-semibold" style={{ color: typeColor }}>{event.time}</div>
+              <div className="text-sm sm:text-base font-semibold" style={{ color: typeColor }}>{event.time}{event.endTime ? ` – ${event.endTime}` : ''}</div>
             </div>
           </div>
 
           {/* Venue */}
+          {event.venue && (
           <div className="flex items-start gap-2 sm:gap-3">
             <div className="p-1.5 sm:p-2 rounded-lg bg-[#00F0FF]/10 border border-[#00F0FF]/30 flex-shrink-0" style={{ backgroundColor: `${typeColor}20`, borderColor: `${typeColor}40` }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="#00F0FF" className="sm:w-6 sm:h-6" style={{ fill: typeColor, imageRendering: 'pixelated' }}>
@@ -299,6 +327,7 @@ const EventModal = ({ event, onClose }) => {
               <div className="text-sm sm:text-base font-semibold break-words" style={{ color: typeColor }}>{event.venue}</div>
             </div>
           </div>
+          )}
 
           {/* Catering */}
           {event.catering && event.catering !== 'None' && (
@@ -317,10 +346,12 @@ const EventModal = ({ event, onClose }) => {
         </div>
 
         {/* Description */}
-        <div className="mb-6 sm:mb-8">
-          <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3" style={{ color: typeColor }}>About This Event</h3>
-          <p className="text-sm sm:text-base text-[#94a3b8] leading-relaxed">{event.description}</p>
-        </div>
+        {event.description && (
+          <div className="mb-6 sm:mb-8">
+            <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3" style={{ color: typeColor }}>About This Event</h3>
+            <p className="text-sm sm:text-base text-[#94a3b8] leading-relaxed">{event.description}</p>
+          </div>
+        )}
 
         {/* Collaborators */}
         {event.collaborators && event.collaborators.length > 0 && (
@@ -346,6 +377,7 @@ const EventModal = ({ event, onClose }) => {
 
         {/* Action Buttons - BOLD TEAL STYLE (like original View Sign-Up Form) */}
         <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
+          {event.signupLink && (
           <a
             href={event.signupLink}
             target="_blank"
@@ -353,7 +385,7 @@ const EventModal = ({ event, onClose }) => {
             data-track={`event-signup:${(event.title || 'unknown').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
             className="flex-1 px-4 sm:px-6 py-3 sm:py-4 rounded-lg text-[#020617] font-bold text-center text-sm sm:text-base
                      hover:scale-105 active:scale-95 transition-all duration-300 touch-manipulation"
-            style={{ 
+            style={{
               backgroundColor: typeColor,
               boxShadow: `0 0 30px ${typeColor}80`,
             }}
@@ -364,7 +396,8 @@ const EventModal = ({ event, onClose }) => {
           >
             View Sign-Up Form
           </a>
-          
+          )}
+
           <div className="flex-1 flex flex-col-reverse gap-2" ref={menuRef}>
             <button
               onClick={() => setCalMenuOpen((o) => !o)}
