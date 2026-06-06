@@ -74,7 +74,7 @@ const isHomePage = Astro.url.pathname === '/';
 							<a id="admin-nav-link" href="/admin" class="hidden text-white/80 hover:text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] whitespace-nowrap">
 								Admin
 							</a>
-							<a href="https://usu.edu.au/clubs/sydney-uni-data-society/" target="_blank" rel="noopener noreferrer" data-track="nav:usu-membership" class="text-sudata-cyan bg-sudata-cyan/10 border border-sudata-cyan/40 hover:bg-sudata-cyan/25 hover:border-sudata-cyan/70 hover:text-white hover:shadow-[0_0_20px_rgba(0,255,255,0.35)] hover:-translate-y-px px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 whitespace-nowrap">
+							<a href="https://usu.edu.au/clubs/sydney-uni-data-society/" target="_blank" rel="noopener noreferrer" data-track="nav:usu-membership" class="text-sudata-cyan bg-sudata-cyan/10 border border-sudata-cyan/40 hover:bg-sudata-cyan/25 hover:border-sudata-cyan/70 hover:text-white hover:shadow-[0_0_20px_rgba(0,255,255,0.35)] hover:-translate-y-px px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 whitespace-nowrap">
 								Sign Up
 							</a>
 						</div>
@@ -104,14 +104,16 @@ const isHomePage = Astro.url.pathname === '/';
 				}
 				#main-nav.nav-mobile-expanded {
 					max-width: calc(100% - 2rem);
-					border-radius: 2rem;
 				}
-				/* Round the glass pill corners and clip the grid to them only when
-				   expanded — keeping it off while collapsed so the Sudino icon,
-				   which floats above the pill, isn't clipped. */
-				#main-nav.nav-mobile-expanded > div {
-					overflow: hidden;
-					border-radius: inherit;
+				/* Fixed, moderate corner radius on mobile for both states. A
+				   constant radius keeps the pill a clean rounded-rect throughout
+				   the animation — unlike rounded-full (9999px), which renders a
+				   tall mid-collapse box as an ellipse and lets the square content
+				   poke out of the transparent corners. The links self-clip to
+				   their own grid track, so the floating Sudino icon stays
+				   unclipped without needing overflow on the pill. */
+				#main-nav > div {
+					border-radius: 1.5rem;
 				}
 				#nav-pill-inner {
 					transition: padding 450ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -121,12 +123,17 @@ const isHomePage = Astro.url.pathname === '/';
 				}
 				/* Stack SUDATA above the links and reveal the links row by
 				   animating its track from 0fr -> 1fr (an interpolatable height
-				   collapse) instead of toggling display. */
+				   collapse) instead of toggling display. The links item must
+				   stretch (default align) to its row track so the 0fr collapse
+				   actually clips it to zero — align-items:start would leave it
+				   content-sized and it would spill out below the pill. */
 				#nav-inner {
 					display: grid;
 					grid-template-columns: 1fr;
 					grid-template-rows: auto 0fr;
-					align-items: start;
+					/* stretch (not the Tailwind items-center default) so the links
+					   item is clamped to its 0fr row and the collapse hides it */
+					align-items: stretch;
 					gap: 0;
 					width: 100%;
 					transition: grid-template-rows 450ms cubic-bezier(0.4, 0, 0.2, 1),
@@ -163,9 +170,9 @@ const isHomePage = Astro.url.pathname === '/';
 					justify-content: center;
 					white-space: normal;
 				}
-				/* Sign Up: rounded pill with horizontal breathing room */
+				/* Sign Up: lightly rounded rectangle with horizontal breathing room */
 				#nav-links a:last-child {
-					border-radius: 9999px;
+					border-radius: 0.4rem;
 					padding: 0.2rem 0.35rem;
 					white-space: nowrap;
 				}
@@ -331,7 +338,7 @@ const isHomePage = Astro.url.pathname === '/';
 				threshold: 0.15 
 			};
 
-			const observer = new IntersectionObserver((entries, observer) => {
+			const observer = new IntersectionObserver((entries) => {
 				entries.forEach(entry => {
 					if (entry.isIntersecting) {
                         // Enter viewport: Fade In & Slide Up
