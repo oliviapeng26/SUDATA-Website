@@ -1,7 +1,7 @@
 # SUDATA Knowledge Base
 
 > **Purpose:** Canonical facts about Sydney University Data Analytics (SUDATA) for assistants and internal tools.  
-> **Sources:** This repository (`src/pages`, `src/data/events.json`, `public/sudino.svg`) and the live site **https://sudata.com.au/** plus **https://usu.edu.au/clubs/sydney-uni-data-society/** (verified April 2026). A legacy/alternate public URL is **https://sudata.org/**.
+> **Sources:** This repository (`src/pages`, the events database, `public/sudino.svg`) and the live site **https://sudata.com.au/** plus **https://usu.edu.au/clubs/sydney-uni-data-society/** (verified April 2026). A legacy/alternate public URL is **https://sudata.org/**.
 
 ---
 
@@ -85,19 +85,19 @@ SUDATA runs **workshops**, **social events**, **industry-facing sessions**, and 
 
 ### Flagship competitive formats
 
-- **USYD Datathon** — Described in this project’s `src/data/events.json` as a **multi-day datathon**: teams tackle **real-world data problems** with **prizes**, alongside **industry collaborators** (past listing includes partners such as **SUBAA**, **CBA**, **Westpac**, **Quantium**, and **Jane Street** for the 2025 calendar entry). Treat **year-on-year dates** as **announced each cycle** on **Instagram** and the events calendar.
+- **USYD Datathon** — A **multi-day datathon**: teams tackle **real-world data problems** with **prizes**, alongside **industry collaborators** (past listings include partners such as **SUBAA**, **CBA**, **Westpac**, **Quantium**, and **Jane Street** for the 2025 calendar entry). Treat **year-on-year dates** as **announced each cycle** on **Instagram** and the events calendar.
 - **Data-Hack** — A team-based hackathon focused on **real-world datasets**, **models**, and **pitching** to **industry and faculty judges**. The **2026** record in this repository’s calendar: **18 April 2026**, collaboration **SUDATA × Comm-STEM**, catering noted as food throughout the event; **venue/time** may be updated on official signup materials.
 
 ### Other recurring themes
 
 Past and adjacent programming (verify dates on social/calendar each year) has included **bioinformatics**-oriented hackathon-style events promoted via **@usyd.sudata**—always confirm the **current** year’s name, date, and registration link.
 
-### Calendar data in this repository
+### Calendar data
 
-Public events are stored in **`src/data/events.json`**, same feed as the Astro **`/events`** page — Sudino’s RAG layer reads it directly alongside this file.
+Public events live in the site's **events database** (Prisma `Event` model), the same feed as the Astro **`/events`** page — Sudino’s RAG layer reads live rows from the database alongside this file.
 
 - **Signup links** embedded in rows (Humanitix, Google Forms, etc.) are factual registration targets; summarise them inline when advising members.
-- For **announcements newer than last JSON update**, **Instagram (@usyd.sudata)** is the natural delta — use it after checking the retrieved calendar slices, not as a substitute answer when listings already exist below.
+- For **announcements not yet entered in the database**, **Instagram (@usyd.sudata)** is the natural delta — use it after checking the retrieved calendar slices, not as a substitute answer when listings already exist below.
 
 ---
 
@@ -115,4 +115,4 @@ Community composition statistics and executive profiles are presented on the **A
 
 ## Technical note for RAG consumers
 
-Retrieval merges this markdown with **monthly calendar chunks** built from `src/data/events.json`. Prefer **dated** statements from the **Calendar: Month Year** sections when users ask about schedules. Do not claim “no entries” for a month if that month’s **Calendar:** block contains rows. Use **sudata.com.au / USU / Instagram** only for gaps, live legal changes, or items missing from the dataset.
+Retrieval merges this markdown with **monthly calendar chunks** built from the live **events database** (Prisma `Event` model). Prefer **dated** statements from the **Calendar: Month Year** sections when users ask about schedules. Do not claim “no entries” for a month if that month’s **Calendar:** block contains rows. Use **sudata.com.au / USU / Instagram** only for gaps, live legal changes, or items missing from the dataset.

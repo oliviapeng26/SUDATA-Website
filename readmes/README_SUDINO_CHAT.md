@@ -2,7 +2,7 @@
 
 Sudino uses **Google’s hosted Gemini API only** (no local or self-hosted models). The route **`src/pages/api/chat.ts`** calls the **Generative Language API** (`gemini-3-flash`). **`GEMINI_API_KEY`** is **server-only** and must not ship in client-side bundles.
 
-**Context retrieval** merges **`src/data/sudata-context.md`** with **monthly calendar chunks** parsed from **`src/data/events.json`** (the same dataset as **`/events`**). Updating the calendar file updates Sudino automatically after restart.
+**Context retrieval** merges **`src/data/sudata-context.md`** with **monthly calendar chunks** built from the **events database** (Prisma `Event` model — the same data as **`/events`**). The chat route fetches events from the DB per request, so calendar answers reflect the live database with no rebuild needed. Update the markdown KB file to change Sudino's static knowledge (effective after restart).
 
 ## Where to put your key
 
