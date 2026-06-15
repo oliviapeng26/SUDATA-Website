@@ -1,3 +1,4 @@
+import { marked } from "marked";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Role = "user" | "assistant" | "system";
@@ -11,6 +12,16 @@ type ChatMessage = {
 function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
+
+/** Render Sudino's markdown reply to HTML. Leading `>_` terminal cues are escaped so they
+ * render literally instead of becoming blockquotes. */
+function renderMarkdown(text: string): string {
+  const escaped = text.replace(/^>_/gm, "\\>_");
+  return marked.parse(escaped, { gfm: true, breaks: true, async: false });
+}
+
+const MARKDOWN_CLASSES =
+  "break-words [&_a]:text-sudata-neon [&_a]:underline [&_a]:underline-offset-2 [&_strong]:font-semibold [&_strong]:text-white [&_p]:my-1 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:my-0.5 [&_li>ul]:my-0.5 [&_code]:rounded [&_code]:bg-white/10 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[0.85em] [&_h1]:text-base [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-bold [&_h3]:font-semibold";
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false);
@@ -318,7 +329,16 @@ export default function Chatbot() {
                           : "border-white/15 bg-white/[0.06] text-left text-sudata-grey"
                       } ${expanded ? (isUser ? "sm:max-w-[min(100%,70%)]" : "sm:max-w-[min(100%,75%)]") : ""}`}
                     >
-                      <span className="whitespace-pre-wrap break-words">{m.text}</span>
+                      {isUser ? (
+                        <span className="whitespace-pre-wrap break-words">{m.text}</span>
+                      ) : (
+                        // Sudino's reply is markdown rendered to HTML (own LLM output, not user input).
+                        <div
+                          className={MARKDOWN_CLASSES}
+                          // eslint-disable-next-line react/no-danger
+                          dangerouslySetInnerHTML={{ __html: renderMarkdown(m.text) }}
+                        />
+                      )}
                     </div>
                   </div>
                 );

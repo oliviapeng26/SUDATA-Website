@@ -1,14 +1,16 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+// Bundle the KB markdown into the build output. Serverless bundlers (e.g. Vercel) only
+// trace imports, not runtime `readFileSync` paths, so reading it from disk at request
+// time fails with ENOENT in production. Importing makes it ship with the function.
+// Calendar events come from the Prisma DB (the source of truth), passed in by callers.
+import bundledKbMarkdown from "../data/sudata-context.md?raw";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /** Default path to the SUDATA markdown knowledge base (next to this file: `src/data/`). */
 export const DEFAULT_KB_PATH = join(__dirname, "../data/sudata-context.md");
-
-/** Canonical events calendar synced with `/events` in this codebase. */
-export const DEFAULT_EVENTS_PATH = join(__dirname, "../data/events.json");
 
 export type ContextChunk = {
   /** Stable id for merging sources (markdown + calendar) */
@@ -125,7 +127,7 @@ function scoreChunk(queryTokens: Set<string>, chunk: ContextChunk): number {
   return score;
 }
 
-type EventRow = {
+export type EventRow = {
   title: string;
   date: string;
   time?: string;
@@ -136,24 +138,6 @@ type EventRow = {
   catering?: string;
   signupLink?: string;
 };
-
-function isValidEventRow(x: unknown): x is EventRow {
-  if (!x || typeof x !== "object") return false;
-  const o = x as Record<string, unknown>;
-  return typeof o.title === "string" && typeof o.date === "string";
-}
-
-/** Public for tests — load `events.json` rows only. */
-export function loadCalendarEvents(eventsPath: string = DEFAULT_EVENTS_PATH): EventRow[] {
-  try {
-    const raw = readFileSync(eventsPath, "utf-8");
-    const data = JSON.parse(raw) as { events?: unknown };
-    if (!Array.isArray(data.events)) return [];
-    return data.events.filter(isValidEventRow);
-  } catch {
-    return [];
-  }
-}
 
 function ymKey(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, "0")}`;
@@ -224,7 +208,7 @@ function formatEventRow(ev: EventRow): string {
 }
 
 /**
- * Monthly calendar chunks sourced from repo `events.json` (same feed as `/events`).
+ * Monthly calendar chunks built from event rows (same feed as `/events`).
  */
 export function chunksFromCalendarEvents(events: EventRow[], indexBase = 10_000): ContextChunk[] {
   const grouped = new Map<string, EventRow[]>();
@@ -363,6 +347,7 @@ export function loadKnowledgeBaseMarkdown(
   path: string = DEFAULT_KB_PATH,
   useCache = true,
 ): string {
+  if (path === DEFAULT_KB_PATH) return bundledKbMarkdown;
   if (useCache && cachedRaw !== null && cachedPath === path) {
     return cachedRaw;
   }
@@ -407,19 +392,20 @@ export function retrieveRelevantChunks(
 }
 
 /**
- * Markdown KB + **`events.json` calendar chunks** merged for retrieval.
+ * Markdown KB + **calendar chunks** merged for retrieval.
+ * Calendar events are passed in via `options.events`, sourced from the Prisma DB (the site's
+ * source of truth). When omitted, no calendar chunks are produced and only the markdown KB is used.
  * Month questions (e.g. “what’s on in May”) always receive that month’s **Calendar:** chunk when it exists.
  */
 export function getContextForQuery(
   query: string,
   kbPath: string = DEFAULT_KB_PATH,
-  options: RetrieveOptions & { eventsPath?: string } = {},
+  options: RetrieveOptions & { events?: EventRow[] } = {},
 ): string {
   const raw = loadKnowledgeBaseMarkdown(kbPath);
   const mdChunks = chunkMarkdown(raw);
 
-  const eventsPath = options.eventsPath ?? DEFAULT_EVENTS_PATH;
-  const events = loadCalendarEvents(eventsPath);
+  const events = options.events ?? [];
   const calChunks = chunksFromCalendarEvents(events);
 
   const allChunks = [...mdChunks, ...calChunks];

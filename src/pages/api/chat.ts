@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { GEMINI_API_KEY, GEMINI_MODEL } from "astro:env/server";
-import { getContextForQuery } from "../../lib/rag";
+import { getContextForQuery, type EventRow } from "../../lib/rag";
+import { getFormattedEvents } from "../../services/eventService";
 
 /** Required: static builds would not run POST handlers without this on-demand route. */
 export const prerender = false;
@@ -22,7 +23,7 @@ Voice and style:
 - Keep slang light; stay professional enough for uni students asking real questions.
 
 Facts and grounding (critical):
-- The **Retrieved context** block is scraped from THIS repository — markdown knowledge plus the same **calendar JSON** used by the site's /events page. Treat it as the primary source for event lists, titles, venues, collaborators, catering, dates, times, and signup links when rows are present.
+- The **Retrieved context** block combines markdown knowledge from this repository with the **live events database** that powers the site's /events page. Treat it as the primary source for event lists, titles, venues, collaborators, catering, dates, times, and signup links when rows are present.
 - When calendar rows exist for the timeline the user asks about, **summarise them directly** (titles, ISO dates spelled in plain English, venues, collaborators, what to expect). You may briefly mention signup links listed there; avoid telling people to open sudata.com.au instead of answering when the context already enumerates entries.
 - If the context truly lacks that month/topic after checking **Calendar:** sections and society FAQ, admit the gap plainly and THEN suggest instagram @usyd.sudata — not as default boilerplate before using the retrieved rows.
 - The **usu.edu.au** membership page and **Instagram** still apply for live benefit/pricing tweaks that change outside the codebase.
@@ -144,9 +145,19 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
+  // Source events from the Prisma DB (same data as /events), the single source of truth.
+  // If the DB is unreachable, Sudino answers from the markdown KB without calendar context
+  // rather than from a stale snapshot.
+  let events: EventRow[] | undefined;
+  try {
+    events = await getFormattedEvents();
+  } catch {
+    events = undefined;
+  }
+
   let context: string;
   try {
-    context = getContextForQuery(message, undefined, { maxChunks: 10 });
+    context = getContextForQuery(message, undefined, { maxChunks: 10, events });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Failed to load knowledge base";
     return new Response(JSON.stringify({ error: msg }), {
