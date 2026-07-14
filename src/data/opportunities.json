@@ -1,15 +1,15 @@
 {
   "opportunities": [
     {
-      "sponsor": "Jane Street",
-      "sponsorTier": 1,
-      "sponsorLogo": "/sponsors/current-sponsors/jane-street.png",
-      "title": "Jane Street Application Portal (AUS)",
-      "type": "Program",
-      "deadline": "2026-03-08",
+      "sponsor": "Westpac",
+      "sponsorTier": 3,
+      "sponsorLogo": "/sponsors/current-sponsors/westpac.png",
+      "title": "Westpac Internship Program",
+      "type": "Internship",
+      "deadline": "2026-07-31",
       "status": "open",
-      "description": "Portal is a multi-day immersive experience designed to give students a real insight into how Jane Street approaches trading, research, and technology. Selected participants will take part in strategic games, hands-on technical sessions, and talks led by industry professionals.",
-      "applicationLink": "https://www.janestreet.com/apply-portal-aus/",
+      "description": "Westpac are looking for uncommon minds who expect to\ncontribute from day one and have an impact. Their\nprograms will get your career off to a flying start!\nIf you’re curious, eager to learn and ready to explore what a\ncareer in banking could look like, this is a place where your\nideas can grow - across areas like Financial Markets &amp;\nTreasury, Corporate &amp; Institutional Banking, Global\nTransaction Services and Group Treasury.",
+      "applicationLink": "https://www.westpac.com.au/about-westpac/careers/graduate-program/?fbclid=IwY2xjawTCxK5leHRuA2FlbQIxMQBzcnRjBmFwcF9pZAEwAAEeBHk5ER-QAELI08P6WTO2mM49f9QouUDkJvEyRmNXWUuZDuBQxn_FzR6Y9Ck_aem_e09kyAHItsvhi9qp9stEQQ",
       "id": "opp_001"
     },
     {
@@ -18,35 +18,11 @@
       "sponsorLogo": "/sponsors/current-sponsors/westpac.png",
       "title": "Westpac Graduate Program",
       "type": "Graduate",
-      "deadline": "2026-04-10",
+      "deadline": "2026-08-14",
       "status": "open",
       "description": "Westpac are looking for uncommon minds who expect to\ncontribute from day one and have an impact. Their\nprograms will get your career off to a flying start!\nIf you’re curious, eager to learn and ready to explore what a\ncareer in banking could look like, this is a place where your\nideas can grow - across areas like Financial Markets &amp;\nTreasury, Corporate &amp; Institutional Banking, Global\nTransaction Services and Group Treasury.",
-      "applicationLink": "https://au.gradconnection.com/employers/westpac/jobs",
+      "applicationLink": "https://www.westpac.com.au/about-westpac/careers/graduate-program/?fbclid=IwY2xjawTCxK5leHRuA2FlbQIxMQBzcnRjBmFwcF9pZAEwAAEeBHk5ER-QAELI08P6WTO2mM49f9QouUDkJvEyRmNXWUuZDuBQxn_FzR6Y9Ck_aem_e09kyAHItsvhi9qp9stEQQ",
       "id": "opp_002"
-    },
-    {
-      "sponsor": "IMC Trading",
-      "sponsorTier": 3,
-      "sponsorLogo": "/sponsors/current-sponsors/imc-trading.webp",
-      "title": "Summer Internship Program",
-      "type": "Internship",
-      "deadline": "2026-04-30",
-      "status": "open",
-      "description": "IMC Trading is offering internship positions for students interested in quantitative trading, software engineering, and market making. Join a global team of problem solvers using technology and algorithms to trade in financial markets worldwide.",
-      "applicationLink": "https://bit.ly/4cdblbA",
-      "id": "opp_003"
-    },
-    {
-      "sponsor": "Atlassian",
-      "sponsorTier": 3,
-      "sponsorLogo": "/sponsors/current-sponsors/atlassian.png",
-      "title": "Atlassian Internships",
-      "type": "Internship",
-      "deadline": null,
-      "status": "open",
-      "description": "Atlassian’s intern program combines hands-on technical training, professional growth opportunities, dedicated mentorship, and strong social connections. This holistic approach empowers students to hit the ground running and sets them up for a successful career at Atlassian!",
-      "applicationLink": "https://www.atlassian.com/company/careers/all-jobs?team=Interns&location=Australia%2CNew%20Zealand&search=",
-      "id": "opp_004"
     },
     {
       "sponsor": "Jane Street",
@@ -58,7 +34,43 @@
       "status": "closed",
       "description": "Jane Street's Women in Trading program is a unique opportunity for women interested in quantitative trading, programming, and mathematics. This cohort's applications are now closed — stay tuned for future rounds.",
       "applicationLink": "https://tr.ee/GNsjYgfuHO",
+      "id": "opp_003"
+    },
+    {
+      "sponsor": "Jane Street",
+      "sponsorTier": 1,
+      "sponsorLogo": "/sponsors/current-sponsors/jane-street.png",
+      "title": "Jane Street Application Portal (AUS)",
+      "type": "Program",
+      "deadline": "2026-03-08",
+      "status": "closed",
+      "description": "Portal is a multi-day immersive experience designed to give students a real insight into how Jane Street approaches trading, research, and technology. Selected participants will take part in strategic games, hands-on technical sessions, and talks led by industry professionals.",
+      "applicationLink": "https://www.janestreet.com/apply-portal-aus/",
+      "id": "opp_004"
+    },
+    {
+      "sponsor": "IMC Trading",
+      "sponsorTier": 3,
+      "sponsorLogo": "/sponsors/current-sponsors/imc-trading.webp",
+      "title": "Summer Internship Program",
+      "type": "Internship",
+      "deadline": "2026-04-30",
+      "status": "closed",
+      "description": "IMC Trading is offering internship positions for students interested in quantitative trading, software engineering, and market making. Join a global team of problem solvers using technology and algorithms to trade in financial markets worldwide.",
+      "applicationLink": "https://bit.ly/4cdblbA",
       "id": "opp_005"
+    },
+    {
+      "sponsor": "Atlassian",
+      "sponsorTier": 3,
+      "sponsorLogo": "/sponsors/current-sponsors/atlassian.png",
+      "title": "Atlassian Internships",
+      "type": "Internship",
+      "deadline": null,
+      "status": "closed",
+      "description": "Atlassian’s intern program combines hands-on technical training, professional growth opportunities, dedicated mentorship, and strong social connections. This holistic approach empowers students to hit the ground running and sets them up for a successful career at Atlassian!",
+      "applicationLink": "https://www.atlassian.com/company/careers/all-jobs?team=Interns&location=Australia%2CNew%20Zealand&search=",
+      "id": "opp_006"
     }
   ]
 }
