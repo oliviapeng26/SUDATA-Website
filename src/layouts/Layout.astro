@@ -4,6 +4,7 @@ import Analytics from '@vercel/analytics/astro'
 
 import '../styles/global.css';
 import SubcomRecruitment from '../components/SubcomRecruitment.jsx';
+import Chatbot from '../components/Chatbot';
 
 interface Props {
 	title?: string;
@@ -70,14 +71,11 @@ const isHomePage = Astro.url.pathname === '/';
 							<a href="/photos" class="text-white/80 hover:text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] whitespace-nowrap">
 								Photos
 							</a>
-							<a href="/docs" class="text-white/80 hover:text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] whitespace-nowrap">
-								Docs
-							</a>
 							<a id="admin-nav-link" href="/admin" class="hidden text-white/80 hover:text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:bg-white/10 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] whitespace-nowrap">
 								Admin
 							</a>
-							<a href="https://usu.edu.au/clubs/sydney-uni-data-society/" target="_blank" rel="noopener noreferrer" data-track="nav:usu-membership" class="text-sudata-cyan bg-sudata-cyan/10 border border-sudata-cyan/40 hover:bg-sudata-cyan/25 hover:border-sudata-cyan/70 hover:text-white hover:shadow-[0_0_20px_rgba(0,255,255,0.35)] hover:-translate-y-px px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 whitespace-nowrap">
-								Membership
+							<a href="https://usu.edu.au/clubs/sydney-uni-data-society/" target="_blank" rel="noopener noreferrer" data-track="nav:usu-membership" class="text-sudata-cyan bg-sudata-cyan/10 border border-sudata-cyan/40 hover:bg-sudata-cyan/25 hover:border-sudata-cyan/70 hover:text-white hover:shadow-[0_0_20px_rgba(0,255,255,0.35)] hover:-translate-y-px px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 whitespace-nowrap">
+								Sign Up
 							</a>
 						</div>
 					</div>
@@ -91,36 +89,78 @@ const isHomePage = Astro.url.pathname === '/';
 				-webkit-tap-highlight-color: transparent;
 				outline: none;
 			}
+			/* Ensure mobile nav display rules cannot reveal hidden admin tab */
+			#admin-nav-link.hidden {
+				display: none !important;
+			}
 
 			@media (max-width: 639px) {
+				/* Outer pill: width grows from a compact SUDATA pill to near-full
+				   width. Both endpoints are explicit lengths so max-width can
+				   actually interpolate (fit-content -> calc() does not). */
+				#main-nav {
+					max-width: 9rem;
+					transition: max-width 450ms cubic-bezier(0.4, 0, 0.2, 1);
+				}
 				#main-nav.nav-mobile-expanded {
-					max-width: calc(100% - 2rem) !important;
-					border-radius: 2rem;
+					max-width: calc(100% - 2rem);
 				}
-				/* Clip so nothing bleeds outside the oval pill */
-				#main-nav.nav-mobile-expanded > div {
-					overflow: hidden;
-					border-radius: inherit;
+				/* Fixed, moderate corner radius on mobile for both states. A
+				   constant radius keeps the pill a clean rounded-rect throughout
+				   the animation — unlike rounded-full (9999px), which renders a
+				   tall mid-collapse box as an ellipse and lets the square content
+				   poke out of the transparent corners. The links self-clip to
+				   their own grid track, so the floating Sudino icon stays
+				   unclipped without needing overflow on the pill. */
+				#main-nav > div {
+					border-radius: 1.5rem;
 				}
-				/* Tighten the outer pill padding so the expanded menu is compact */
+				#nav-pill-inner {
+					transition: padding 450ms cubic-bezier(0.4, 0, 0.2, 1);
+				}
 				#main-nav.nav-mobile-expanded #nav-pill-inner {
 					padding: 0.6rem 1rem;
 				}
-				/* Stack SUDATA above the link grid so the grid gets full pill width */
-				#main-nav.nav-mobile-expanded #nav-inner {
-					flex-direction: column;
-					align-items: flex-start;
-					gap: 0.3rem;
+				/* Stack SUDATA above the links and reveal the links row by
+				   animating its track from 0fr -> 1fr (an interpolatable height
+				   collapse) instead of toggling display. The links item must
+				   stretch (default align) to its row track so the 0fr collapse
+				   actually clips it to zero — align-items:start would leave it
+				   content-sized and it would spill out below the pill. */
+				#nav-inner {
+					display: grid;
+					grid-template-columns: 1fr;
+					grid-template-rows: auto 0fr;
+					/* stretch (not the Tailwind items-center default) so the links
+					   item is clamped to its 0fr row and the collapse hides it */
+					align-items: stretch;
+					gap: 0;
 					width: 100%;
+					transition: grid-template-rows 450ms cubic-bezier(0.4, 0, 0.2, 1),
+						gap 450ms cubic-bezier(0.4, 0, 0.2, 1);
 				}
-				/* 4-column grid at full width — each cell is ~¼ of the pill */
-				#main-nav.nav-mobile-expanded #nav-links {
+				#main-nav.nav-mobile-expanded #nav-inner {
+					grid-template-rows: auto 1fr;
+					gap: 0.3rem;
+				}
+				/* 4-column grid, clipped to its track so the collapse hides it.
+				   min-height:0 lets the 0fr track actually shrink to nothing. */
+				#nav-links {
 					display: grid;
 					grid-template-columns: repeat(4, 1fr);
 					gap: 0.25rem;
 					width: 100%;
+					min-height: 0;
+					overflow: hidden;
+					opacity: 0;
+					pointer-events: none;
+					transition: opacity 300ms ease;
 				}
-				#main-nav.nav-mobile-expanded #nav-links a {
+				#main-nav.nav-mobile-expanded #nav-links {
+					opacity: 1;
+					pointer-events: auto;
+				}
+				#nav-links a {
 					padding: 0.3rem 0.2rem;
 					font-size: 0.65rem;
 					line-height: 1.2;
@@ -130,9 +170,9 @@ const isHomePage = Astro.url.pathname === '/';
 					justify-content: center;
 					white-space: normal;
 				}
-				/* Membership: flat rounded rectangle with horizontal breathing room */
-				#main-nav.nav-mobile-expanded #nav-links a:last-child {
-					border-radius: 0.3rem;
+				/* Sign Up: lightly rounded rectangle with horizontal breathing room */
+				#nav-links a:last-child {
+					border-radius: 0.4rem;
 					padding: 0.2rem 0.35rem;
 					white-space: nowrap;
 				}
@@ -141,59 +181,34 @@ const isHomePage = Astro.url.pathname === '/';
 		<script>
 			(function() {
 				const toggle = document.getElementById('nav-toggle') as HTMLElement | null;
-				const navLinks = document.getElementById('nav-links') as HTMLElement | null;
-				const navInner = document.getElementById('nav-inner') as HTMLElement | null;
 				const sudinoIcon = document.getElementById('sudino-icon') as HTMLElement | null;
 				const mainNav = document.getElementById('main-nav') as HTMLElement | null;
-				if (!toggle || !navLinks || !navInner || !sudinoIcon || !mainNav) return;
+				if (!toggle || !sudinoIcon || !mainNav) return;
 
 				const isMobile = () => window.innerWidth < 640;
 
-				let collapsed = isMobile();
-				if (collapsed) {
-					navLinks.style.opacity = '0';
-					navLinks.style.visibility = 'hidden';
-					navLinks.style.width = '0';
-					navLinks.style.overflow = 'hidden';
-					navInner.style.gap = '0';
-					sudinoIcon.style.opacity = '1';
-					sudinoIcon.style.transform = 'scale(1)';
-					mainNav.classList.remove('nav-mobile-expanded');
-				}
+				// The collapsed/expanded layout itself is fully CSS-driven (see the
+				// @media block above) so every animated property interpolates. JS
+				// only flips the class and the floating Sudino icon, which sits
+				// above the pill and shows only while collapsed on mobile.
+				const apply = (expanded: boolean) => {
+					const showIcon = isMobile() && !expanded;
+					sudinoIcon.style.opacity = showIcon ? '1' : '0';
+					sudinoIcon.style.transform = showIcon ? 'scale(1)' : 'scale(0.5)';
+					mainNav.classList.toggle('nav-mobile-expanded', expanded && isMobile());
+				};
+
+				let expanded = false;
+				apply(expanded);
 
 				toggle.addEventListener('click', () => {
-					collapsed = !collapsed;
-					if (collapsed) {
-						navLinks.style.opacity = '0';
-						navLinks.style.visibility = 'hidden';
-						navLinks.style.width = '0';
-						navLinks.style.overflow = 'hidden';
-						navInner.style.gap = '0';
-						sudinoIcon.style.opacity = '1';
-						sudinoIcon.style.transform = 'scale(1)';
-						mainNav.classList.remove('nav-mobile-expanded');
-					} else {
-						navLinks.style.opacity = '1';
-						navLinks.style.visibility = 'visible';
-						navLinks.style.width = '';
-						navLinks.style.overflow = '';
-						navInner.style.gap = '';
-						sudinoIcon.style.opacity = '0';
-						sudinoIcon.style.transform = 'scale(0.5)';
-						if (isMobile()) mainNav.classList.add('nav-mobile-expanded');
-					}
+					expanded = !expanded;
+					apply(expanded);
 				});
 
 				window.addEventListener('resize', () => {
-					if (!isMobile()) {
-						navLinks.style.opacity = '1';
-						navLinks.style.visibility = 'visible';
-						navLinks.style.width = '';
-						navLinks.style.overflow = '';
-						navInner.style.gap = '';
-						collapsed = false;
-						mainNav.classList.remove('nav-mobile-expanded');
-					}
+					if (!isMobile()) expanded = false;
+					apply(expanded);
 				});
 			})();
 		</script>
@@ -288,6 +303,7 @@ const isHomePage = Astro.url.pathname === '/';
 			</div>
 		</footer>
 		<SubcomRecruitment client:only="react" isHomePage={isHomePage} />
+		<Chatbot client:load />
 		<script>
 			// Advanced Vapor Pixel Cursor Trail
 			document.addEventListener('mousemove', (e) => {
@@ -322,7 +338,7 @@ const isHomePage = Astro.url.pathname === '/';
 				threshold: 0.15 
 			};
 
-			const observer = new IntersectionObserver((entries, observer) => {
+			const observer = new IntersectionObserver((entries) => {
 				entries.forEach(entry => {
 					if (entry.isIntersecting) {
                         // Enter viewport: Fade In & Slide Up

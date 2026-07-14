@@ -27,7 +27,8 @@ model Event {
   id            Int      @id @default(autoincrement())
   title         String
   date          DateTime
-  time          DateTime @db.Timestamptz(3)
+  time          DateTime  @db.Timestamptz(3)
+  endTime       DateTime? @db.Timestamptz(3)
   venue         String
   type          String
   signupLink    String
@@ -64,4 +65,26 @@ model PageView {
 
   @@index([createdAt])
   @@index([page])
+}
+
+model Album {
+  id        Int          @id @default(autoincrement())
+  name      String
+  date      String
+  link      String
+  createdAt DateTime     @default(now())
+  images    AlbumImage[]
+
+  @@index([createdAt])
+}
+
+model AlbumImage {
+  id         Int    @id @default(autoincrement())
+  albumId    Int
+  album      Album  @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  image_data Bytes
+  mime_type  String
+  position   Int    @default(0)
+
+  @@index([albumId])
 }

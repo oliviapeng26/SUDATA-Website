@@ -1,45 +1,12 @@
 ---
-export const prerender = true;
+export const prerender = false;
 import Layout from "../layouts/Layout.astro";
 import AlbumCarousel from "../components/AlbumCarousel.astro";
-import { loadAlbum } from "../lib/albums";
+import { getDbAlbums } from "../services/albumService";
 
-// For some reason we need to add every other file ext?? Doesn't show image otherwise
-const innGlob = import.meta.glob("../assets/albums/inn/*.{jpg,jpeg,png,webp,avif}", {
-  eager: true,
-  import: "default",
-});
-
-const ballGlob = import.meta.glob("../assets/albums/ball/*.{jpg,jpeg,png,webp,avif}", {
-  eager: true,
-  import: "default",
-});
-
-const startupGlob = import.meta.glob("../assets/albums/startup/*.{jpg,jpeg,png,webp,avif}", {
-  eager: true,
-  import: "default",
-});
-
-const albums = [
-  {
-    name: "INN 2025",
-    date: "May 2025",
-    images: loadAlbum(innGlob, "INN 2025"),
-    link: "https://photos.app.goo.gl/sPAGscihAqiscHNU6"
-  },
-  {
-    name: "Startup Night",
-    date: "Sept 2025",
-    images: loadAlbum(startupGlob, "Startup Night"),
-    link: "https://photos.app.goo.gl/Ts9CYAZnoeQV1dsS9"
-  },
-  {
-    parts: ["SUDATA", "SUMATH", "UNSWMATH Ball '25"],
-    date: "Oct 2025",
-    images: loadAlbum(ballGlob, "Ball 2025"),
-    link: "https://photos.app.goo.gl/KkFssZJXDh3iFj2M9"
-  }
-]
+// All albums are now managed in the database via /admin/photos.
+type DisplayAlbum = { name?: string; parts?: string[]; date: string; link: string; images: any[] };
+const albums: DisplayAlbum[] = (await getDbAlbums()).filter((a) => a.images && a.images.length > 0);
 ---
 <Layout title="SUDATA | Photos">
   <div class="flex flex-col w-full max-w-4xl mx-auto space-y-12 sm:space-y-16 md:space-y-24 pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20 md:pb-24 px-4 sm:px-6">

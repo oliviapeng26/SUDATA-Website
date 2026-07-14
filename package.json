@@ -3,6 +3,8 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "env:setup": "node scripts/ensure-env.mjs",
+    "predev": "node scripts/ensure-env.mjs && prisma generate",
     "dev": "astro dev",
     "build": "prisma generate && astro build",
     "preview": "astro preview",
@@ -32,8 +34,7 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "tailwindcss": "^3.4.19",
-    "three": "^0.182.0",
-    "xlsx": "^0.18.5"
+    "three": "^0.182.0"
   },
   "devDependencies": {
     "@types/pg": "^8.20.0",

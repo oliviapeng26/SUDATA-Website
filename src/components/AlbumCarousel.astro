@@ -36,15 +36,25 @@ const uid = `carousel-${Math.random().toString(36).slice(2)}`;
         <div class="carousel" style={`height:${height}px`} data-carousel>
           {images.map((img, i) => (
             <div class="slide" data-slide>
-              <Image
-                src={img.src}
-                alt={img.alt ?? ""}
-                loading={i === 0 ? "eager" : "lazy"}
-                decoding="async"
-                class="h-full w-full object-contain"
-                widths={[640, 800, 1200, 1600]}
-                sizes="(max-width: 768px) 100vw, 768px"
-              />
+              {typeof img.src === "string" ? (
+                <img
+                  src={img.src}
+                  alt={img.alt ?? ""}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                  class="h-full w-full object-contain"
+                />
+              ) : (
+                <Image
+                  src={img.src}
+                  alt={img.alt ?? ""}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                  class="h-full w-full object-contain"
+                  widths={[640, 800, 1200, 1600]}
+                  sizes="(max-width: 768px) 100vw, 768px"
+                />
+              )}
             </div>
           ))}
         </div>

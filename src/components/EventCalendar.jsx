@@ -56,7 +56,7 @@ const EventCalendar = ({ events, initialEventId = '' }) => {
   // Filter events by active tags and selected year
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
-      const eventYear = new Date(event.date).getFullYear();
+      const eventYear = Number(String(event.date).slice(0, 4));
       const yearMatches = eventYear === selectedYear;
       
       // If no filters are active, show no events
@@ -72,8 +72,8 @@ const EventCalendar = ({ events, initialEventId = '' }) => {
   // Get events for selected month
   const monthEvents = useMemo(() => {
     return filteredEvents.filter(event => {
-      const eventDate = new Date(event.date);
-      return eventDate.getMonth() === selectedMonth;
+      const eventMonth = Number(String(event.date).slice(5, 7)) - 1;
+      return eventMonth === selectedMonth;
     });
   }, [filteredEvents, selectedMonth]);
 
@@ -123,20 +123,14 @@ const EventCalendar = ({ events, initialEventId = '' }) => {
   const toggleFilter = (type) => {
     setActiveFilters(prev => {
       const newFilters = new Set(prev);
-      
-      // If all two filters are currently active (initial state),
-      // clicking one should show ONLY that one
-      if (newFilters.size === 2) {
-        return new Set([type]);
-      }
-      
-      // Otherwise, toggle the clicked filter on/off (multi-select mode)
+
+      // Plain multi-select toggle: clicking a filter turns that filter on/off
       if (newFilters.has(type)) {
         newFilters.delete(type);
       } else {
         newFilters.add(type);
       }
-      
+
       return newFilters;
     });
   };
@@ -340,27 +334,35 @@ const EventCalendar = ({ events, initialEventId = '' }) => {
                       }
                       ${dayEvents.length > 0 ? 'ring-1 sm:ring-2 ring-[#00F0FF]/50' : ''}
                       ${holidayName ? 'bg-[#FF00FF]/10 border-[#FF00FF]/30' : ''}
+                      ${isToday ? 'ring-2 ring-[#00F0FF] !border-[#00F0FF] shadow-[0_0_18px_rgba(0,240,255,0.5)] bg-[#00F0FF]/15' : ''}
                     `}
-                    title={holidayName || ''}
+                    title={isToday ? 'Today' : holidayName || ''}
                   >
                     {day && (
                       <>
                         <div className="flex items-start justify-between gap-0.5 sm:gap-1">
                           <div className={`font-bold text-xs sm:text-sm ${
                             isToday
-                              ? 'w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full bg-white/10 ring-1 ring-white/25 text-[#00F0FF]'
+                              ? 'w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full bg-[#00F0FF] text-[#020617] shadow-[0_0_12px_rgba(0,240,255,0.85)]'
                               : holidayName ? 'text-[#FF00FF]' : 'text-[#94a3b8]'
                           }`}>
                             {day}
                           </div>
-                          {semesterInfo && (
-                            <div className="text-[8px] sm:text-[9px] text-[#00F0FF]/60 font-mono leading-tight">
-                              {semesterInfo.week 
-                                ? `S${semesterInfo.semester}W${semesterInfo.week}`
-                                : semesterInfo.period
-                              }
-                            </div>
-                          )}
+                          <div className="flex flex-col items-end gap-0.5 leading-tight">
+                            {isToday && (
+                              <div className="text-[8px] sm:text-[9px] font-bold tracking-[0.12em] text-[#00F0FF] animate-pulse">
+                                TODAY
+                              </div>
+                            )}
+                            {semesterInfo && (
+                              <div className="text-[8px] sm:text-[9px] text-[#00F0FF]/60 font-mono">
+                                {semesterInfo.week
+                                  ? `S${semesterInfo.semester}W${semesterInfo.week}`
+                                  : semesterInfo.period
+                                }
+                              </div>
+                            )}
+                          </div>
                         </div>
                         
                         {/* Public Holiday Indicator */}

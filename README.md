@@ -9,6 +9,7 @@ Welcome to the repository for the SUDATA website. This project is built with **A
 - **Styling**: [Tailwind CSS](https://tailwindcss.com)
 - **Icons**: [pixelarticons](https://pixelarticons.com/)
 - **3D/Graphics**: [Three.js](https://threejs.org/) / [React Three Fiber](https://docs.pmnd.rs/react-three-fiber)
+- **Sudino chat**: Google **Gemini** via server route `POST /api/chat` (requires `GEMINI_API_KEY` — see below)
 
 ## Getting Started
 
@@ -22,6 +23,17 @@ Welcome to the repository for the SUDATA website. This project is built with **A
     npm run dev
     ```
     Access the site at `http://localhost:4321`.
+
+### Sudino chat (Gemini API)
+
+The in-site Sudino assistant calls **`POST /api/chat`** and needs a Gemini key on the server.
+
+1. Run **`npm run dev`** once (or **`npm run env:setup`**). That creates **`.env`** from **`.env.example`** if you don’t have one yet — it is **gitignored** and never committed.
+2. Open **`.env`**, paste your key after **`GEMINI_API_KEY=`** from [Google AI Studio](https://aistudio.google.com/apikey). No quotes, no spaces around `=`.
+3. **Restart** `npm run dev` after saving.
+4. **Production:** set **`GEMINI_API_KEY`** in your host’s environment/secrets (not in the repo).
+
+More detail: [readmes/README_SUDINO_CHAT.md](readmes/README_SUDINO_CHAT.md).
 
 ## Design System & recent Updates
 

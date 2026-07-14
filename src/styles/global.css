@@ -360,3 +360,102 @@
 .docs-prose img {
   @apply rounded-xl my-4 max-w-full;
 }
+
+/* ── Sudino chatbot (Chatbot.tsx) — mascot motion + eye pulse ── */
+@keyframes chatbot-sudino-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes chatbot-tail-wag {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+}
+
+@keyframes chatbot-eye-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    box-shadow: 0 0 4px #00f0ff, 0 0 10px #22d3ee, 0 0 16px rgba(0, 240, 255, 0.45);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 10px #67e8f9, 0 0 20px #00f0ff, 0 0 28px rgba(34, 211, 238, 0.65);
+  }
+}
+
+.chatbot-mascot-float {
+  animation: chatbot-sudino-float 3s ease-in-out infinite;
+}
+
+.chatbot-mascot-tail {
+  transform-origin: 72% 88%;
+  animation: chatbot-tail-wag 2.4s ease-in-out infinite;
+}
+
+.chatbot-mascot-thinking .chatbot-eye-dot {
+  animation: chatbot-eye-pulse 0.85s ease-in-out infinite;
+}
+
+.chatbot-mascot-thinking .chatbot-sudino-img {
+  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.5));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chatbot-mascot-float,
+  .chatbot-mascot-tail,
+  .chatbot-mascot-thinking .chatbot-eye-dot {
+    animation: none !important;
+  }
+  .chatbot-mascot-thinking .chatbot-sudino-img {
+    filter: none;
+  }
+}
+
+/* Smaller header close control inside chat panel (global mobile rule is 44px) */
+@media (max-width: 640px) {
+  .chatbot-panel button.chatbot-header-close {
+    min-height: 36px;
+    min-width: 36px;
+  }
+
+  .chatbot-panel .chatbot-send-btn {
+    min-height: 44px;
+    min-width: auto;
+  }
+}
+
+/* Shared admin form controls (used by Edit Events and Manage Photos) */
+.label-neon {
+  @apply flex items-center gap-2 text-[#00F0FF] text-[10px] tracking-[0.2em] uppercase font-bold mb-2;
+}
+
+.input-field {
+  @apply w-full bg-slate-900/60 border border-[#00F0FF]/20 p-4 text-white
+         placeholder:text-white/20 font-mono text-sm
+         focus:outline-none focus:border-[#00F0FF] focus:bg-slate-900/90
+         transition-all duration-300;
+}
+
+.submit-btn {
+  @apply w-full flex items-center justify-center gap-4 bg-[#00F0FF] text-[#020617]
+         font-bold py-4 tracking-[0.4em] uppercase transition-all duration-300
+         shadow-[0_0_20px_rgba(0,240,255,0.4)];
+}
+
+.submit-btn:hover {
+  @apply bg-white shadow-[0_0_30px_white] -translate-y-1;
+}

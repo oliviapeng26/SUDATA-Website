@@ -1,0 +1,29 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import AlbumManager from "../../components/AlbumManager.jsx";
+---
+
+<Layout title="Manage Photos | SUDATA">
+  <main class="min-h-screen bg-[#020617] pt-24 pb-20 px-4 sm:px-6">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+        <div>
+          <a
+            href="/admin"
+            class="inline-block mb-3 px-4 py-2 border border-[#00F0FF]/40 text-[#00F0FF] text-xs font-mono tracking-[0.2em] uppercase hover:bg-[#00F0FF]/10 hover:border-[#00F0FF] transition-all"
+          >
+            &larr; Back to Admin
+          </a>
+          <h1 class="text-3xl sm:text-4xl font-bold text-[#00F0FF] tracking-widest font-mono uppercase" style="text-shadow: 0 0 15px #00F0FF;">
+            Manage Photos
+          </h1>
+          <p class="text-[#94a3b8] text-sm font-mono mt-2">
+            Add photo albums with a Google Photos link and preview images.
+          </p>
+        </div>
+      </div>
+
+      <AlbumManager client:load />
+    </div>
+  </main>
+</Layout>

@@ -5,6 +5,7 @@ import EventCalendar from '../components/EventCalendar.jsx';
 import UpcomingEvents from '../components/UpcomingEvents.jsx';
 import { getFormattedEvents } from '../services/eventService';
 import { isAdminRequest } from '../lib/adminAuth';
+import CalendarSubscribe from '../components/CalendarSubscribe';
 
 const pageTitle = 'Events | SUDATA';
 const isAdmin = isAdminRequest(Astro.cookies);
@@ -52,58 +53,97 @@ const initialEventId = Astro.url.searchParams.get('event') ?? '';
         )}
 
         <!-- UPCOMING_EVENTS section -->
-        <div class="reveal-on-scroll max-w-7xl mx-auto mb-8 text-left">
+        <div class="reveal-on-scroll max-w-7xl mx-auto text-left">
           <UpcomingEvents events={eventsData} client:load />
-        </div>
-
-        <!-- CALENDAR_GUIDE section (renamed from NAVIGATION_PROTOCOL) -->
-        <div class="reveal-on-scroll terminal-block scanline-overlay p-6 sm:p-8 md:p-10 mb-8">
-          <div class="relative z-10">
-            <div class="font-mono-tech text-sudata-neon/80 text-sm tracking-[0.2em] mb-4 flex items-center gap-2">
-              <span class="animate-flicker">&gt;_</span>
-              <span class="whitespace-nowrap text-xs sm:text-sm">[SECTION: EVENTS_CALENDAR]</span>
-            </div>
-            <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-white font-mono-tech tracking-widest mb-4 text-left">
-              Interface Guide
-            </h2>
-            <div class="text-sudata-grey font-mono-tech text-sm leading-relaxed space-y-3 text-left">
-              <p>
-                Navigate through SUDATA's temporal event stream spanning multiple years. The calendar interface allows you to filter events by type—whether you're hunting for technical workshops, social mixers, or industry networking opportunities.
-              </p>
-              <div class="text-sudata-neon/70 text-xs tracking-wider space-y-1">
-                <div class="flex items-start gap-2">
-                  <span class="text-sudata-neon mt-0.5">&gt;</span>
-                  <span>Click any event card to expand full details and registration info</span>
-                </div>
-                <div class="flex items-start gap-2">
-                  <span class="text-sudata-neon mt-0.5">&gt;</span>
-                  <span>Select category filters to display only specific event types (multi-select enabled)</span>
-                </div>
-                <div class="flex items-start gap-2">
-                  <span class="text-sudata-neon mt-0.5">&gt;</span>
-                  <span>Scroll through past archives or upcoming sessions</span>
-                </div>
-                <div class="flex items-start gap-2">
-                  <span class="text-sudata-neon mt-0.5">&gt;</span>
-                  <span>All timestamps synced to local timezone</span>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
 
     <!-- Calendar Component -->
-    <div class="max-w-7xl mx-auto">
+    <div id="events-calendar" class="max-w-7xl mx-auto scroll-mt-24">
+      <!-- Subscribe bar: lives next to the calendar it acts on.
+           relative z-50 lifts its stacking context above the calendar so the
+           Subscribe dropdown isn't painted behind it. -->
+      <div class="relative z-50 reveal-on-scroll flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div class="text-left">
+          <h2 class="text-lg sm:text-xl font-bold text-white font-mono-tech tracking-widest">Event Calendar</h2>
+          <p class="text-sudata-grey font-mono-tech text-xs sm:text-sm mt-1 max-w-xl">
+            Subscribe once and new SUDATA events sync to your calendar automatically — no re-importing.
+          </p>
+        </div>
+        <div class="flex sm:justify-end">
+          <CalendarSubscribe client:load />
+        </div>
+      </div>
+
       <EventCalendar events={eventsData} initialEventId={initialEventId} client:load />
     </div>
 
   </div>
+
+  <!-- Floating "Go to calendar" button -->
+  <button
+    id="go-to-calendar"
+    type="button"
+    aria-label="Scroll to the events calendar"
+    class="group fixed left-1/2 -translate-x-1/2 bottom-6 z-40 flex items-center gap-2 px-5 py-3 rounded-full
+           font-mono-tech text-xs sm:text-sm font-bold tracking-wider text-[#020617]
+           bg-[#00F0FF] shadow-[0_0_25px_rgba(0,240,255,0.5)]
+           transition-all duration-300 hover:scale-105 active:scale-95"
+  >
+    <span>Go to calendar</span>
+    <svg class="go-cal-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  </button>
 </Layout>
+
+<script>
+  const btn = document.getElementById('go-to-calendar');
+  const calendar = document.getElementById('events-calendar');
+
+  if (btn && calendar) {
+    btn.addEventListener('click', () => {
+      calendar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    // Hide the button once the calendar is in view
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          btn.classList.toggle('go-cal-hidden', entry.isIntersecting);
+        });
+      },
+      { threshold: 0.15 },
+    );
+    observer.observe(calendar);
+  }
+</script>
 
 <style>
   html {
     scroll-behavior: smooth;
+  }
+
+  #go-to-calendar {
+    opacity: 1;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  #go-to-calendar.go-cal-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 1rem);
+  }
+  .go-cal-arrow {
+    animation: go-cal-bounce 1.4s ease-in-out infinite;
+  }
+  @keyframes go-cal-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(3px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .go-cal-arrow {
+      animation: none;
+    }
   }
 </style>
